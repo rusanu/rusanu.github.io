@@ -1,0 +1,49 @@
+---
+id: 2072
+title: Version Control and your Database
+date: 2013-08-02T04:23:28+00:00
+author: remus
+layout: revision
+guid: http://rusanu.com/2013/08/02/358-autosave/
+permalink: /2013/08/02/358-autosave/
+---
+I am still amazed when I walk into a development shop and I ask for their application database script and they offer to **extract** one for me. Really, your only definition of the database is the database itself? Now you wouldn&#8217;t keep your libraries as object code only and reverse engineer them every time you want to make a change, would you?
+
+Now, all sarcasm aside, why is so hard to keep a database definition as source and keep it under version control? The reason is not that people are dumb, these are bright developers and they would do the right thing if it would fit into their natural work flow. The problem is that the tool set at their disposal as developers (usually the Visual Studio suite) is far far behind the capabilities of the database administration tool set (the SSMS). But the later is focused for the needs of administrators and the natural flow of actions is to visually modify some schema properties (add tables, define indexes etc) in a dialog and then click the &#8216;Do it!&#8217; button. This hides actual scripts going on behind the scenes and does not lend itself naturally to the normal code/build/run/test/commit cycle of the developer desk.
+
+<!--more-->
+
+In my development persona I have become acutely aware of the pitfalls of not having sources for my database objects and catalog reference data and not having the benefits of source control versioning. My answer to this problem was to rely on an extended database property (usually named after the application, eg. &#8220;MyApplication DB Version&#8221;) to keep track of the current deployed application schema. Every database schema modification is a version change that is achieved by running a specific script, including the initial deployment from v. NULL to v. 1.0 . First thing I check the current version:
+
+<pre><code class="prettyprint lang-sql">
+SELECT [value] 
+    from ::fn_listextendedproperty (
+        'MyApplication DB Version', 
+        default, default, default, default, default, default);
+</code></pre>
+
+The application contains a static array of versions and scripts. After it retrieves the current version, it iterates the array until it finds the retrieved version and then runs the script. This script will upgrade the database to the next version, and all the scripts end by setting the new version:
+
+<pre><code class="prettyprint lang-sql">
+EXEC sp_updateextendedproperty 
+	@name = N'MyApplication DB Version', @value = '1.2';
+go
+</code></pre>
+
+The application then iterates again until the final version is reached.
+
+The main advantage of this approach is that my deployment script is easy to create and test, and is not peppered with those nasty &#8216;IF EXISTS(&#8230;)&#8217; conditional statements. This scripts become immutable once a version is rolled out. If schema changes then the version is rolled forward and a new script is added with the necessary steps to alter the database to the new schema. The new script is easy to test and hammer into correctness. Start from the current version backup, run the script, fix any problems, then roll back again to the current version backup, run it again until all problems are fixed.
+
+Note that there is no script to deploy directly the current version. A new deployment will deploy by running all the scripts in a row, from v. 0 to v. 1, then v. 1.1, v. 1.2 and so on and so forth. This means that objects in the schema will go trough all their lifetime variations: tables will be created with missing columns then later the column will be added at the v. 1.1 script, stored procedures will go through several incarnations as they are ALTERed into the current final form, reference data will be added then updated or deleted as the application has evolved. This makes for a strange experience for someone monitoring the application deployment, but it certainly pays off from a source maintainability point of view. Also your application can be deployed safely on top of any previous version, as probably your clients will not be all at the last version.
+
+The one major disadvantage of my approach is the lack of a current reference definition of the schema in source. The schema is the result of all the transformations from v. 0 to current version and one cannot simply go into the schema script and see the current definition of any object.
+
+## Visual Studio Database Edition
+
+Last Wednesday I was at the Pacific Northwest PASS meeting on the MS campus and Barclay Hill presented the newest additions to the VS Database Edition line. I was really impressed. The new functionality supports definition of database schema stored in Transact-SQL scripts (your familiar CREATE statements) and thus fully integrates into source version control, be it via VSTS, <a href="http://ankhsvn.open.collab.net/" target="_blank">AnkhSVN</a> or any SCM of your choice. VS can nou produce a new type of file during the build of your project, a .dbschema file. This is a deployment file containing the definition of your project schema. Coupled with the VSDBCMD command line tool one can take this .dbschema to the customer site, run it and the tool will analyze the current deployed schema, compare it with the .dbschema definition, produce a delta and apply this delta transformation to the database. The tool supports every object in SQL 2008, both at database and instance level. It does not though support replication nor SQL Agent objects, and I think that is fine since they are really tied to deployment site specifics, not to development time.
+
+The fact that the project schema definitions are pure T-SQL and the source control integration means you can setup MSBUILD to produce continuous integration builds and drop a build with the current trunk or branch, including the current .dbschema file. You can then take this .dbschema from the drop location and have it tested at your customer site. Or you can have the build process deploy the project, implicitly running the .dbschema and apply it to your development test database. You can even go fancy and automate the deployment into the staging servers for integration testing. And since MSBUILD supports adding BVTs (build validation tests) to your build drop process, you can also automate that part. I would shy though from going the whole nine yards and have the build process apply the new build on production server, for obvious reasons :). But perhaps this is not so outrageous, specially for shops that develop around one and only one deployment, as is usually the case with web sites. Careful branch management can stage the deployment from development to test, integration and finally production.
+
+Also a good news coming is that the next Visual Studio Database Edition is actually going to be integrated in the Developer Edition. This is really great, since a lot of shops really need this functionality but would not be willing to pay extra bucks for a separate Database Edition.
+
+If you like to play with this awesome new features I recommend you download the latest Visual Studio Team Systems 2008 Database Edition GDR. Gert has a couple of useful links to the download location, manual, some setup instructions: <a href="http://blogs.msdn.com/gertd/archive/2008/10/27/the-gdr-rc-is-here.aspx" target="_blank">http://blogs.msdn.com/gertd/archive/2008/10/27/the-gdr-rc-is-here.aspx</a>

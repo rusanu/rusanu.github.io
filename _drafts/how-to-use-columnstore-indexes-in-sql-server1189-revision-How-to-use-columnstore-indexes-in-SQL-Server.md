@@ -1,0 +1,31 @@
+---
+id: 1190
+title: How to use columnstore indexes in SQL Server
+date: 2011-07-12T23:34:37+00:00
+author: remus
+layout: revision
+guid: http://rusanu.com/2011/07/12/1189-revision/
+permalink: /2011/07/12/1189-revision/
+---
+Column oriented storage is the data storage of choice for business analysis application. Column oriented storage allows for a high data compression rate and as such it can increase processing speed by reducing the IO needs. Now SQL Server allows for creating column oriented indexes (called COLUMNSTORE indexes) and thus brings the benefits of this highly efficient BI oriented indexes in the same engine that runs the OLTP workload. The syntax for creating columnstore indexes is described on MSDN at <a href="http://msdn.microsoft.com/en-us/library/gg492153%28v=SQL.110%29.aspx" target="_blank">CREATE COLUMNSTORE INDEX</a>. Lets walk trough a very simple example of how to create and use a columnstore index. First lets have a dummy sales table:
+
+<pre>create partition function pf (date) as range left for values ('20110712', '20110713', '20110714', '20110715', '20110716');
+go
+
+create partition scheme ps as  partition pf all to ([PRIMARY]);
+go
+
+create table sales (
+	[id] int not null identity (1,1),
+	[date] date not null,
+	itemid smallint not null,
+	price money not null,
+	quantity numeric(18,4) not null)
+	on ps([date]);
+go
+
+create unique clustered index cdx_sales_date_id on sales ([date], [id]) on ps([date]);
+go
+</pre>
+
+Notice how I created this table on a partitioning scheme that has one partition a day. I&#8217;ll explain shortly why I choose this particular arrangement. for now, lets populate the table with 1 million &#8216;sales&#8217;

@@ -1,0 +1,310 @@
+---
+id: 736
+title: Asynchronous procedure execution
+date: 2010-03-09T17:31:57+00:00
+author: remus
+layout: revision
+guid: http://rusanu.com/2010/03/09/514-revision-20/
+permalink: /2010/03/09/514-revision-20/
+---
+**Update:** a version of this sample that accepts parameters is available in the post [Passing Parameters to a Background Procedure](http://rusanu.com/2009/08/18/passing-parameters-to-a-background-procedure/)
+
+Recently an user on StackOverflow raised the question <a href="http://stackoverflow.com/questions/1229438/execute-a-stored-procedure-from-a-windows-form-asynchronously-and-then-disconnect" target="_blank">Execute a stored procedure from a windows form asynchronously and then disconnect?</a>. This is a known problem, how to invoke a long running procedure on SQL Server without constraining the client to wait for the procedure execution to terminate. Most times I&#8217;ve seen this question raised in the context of web applications when waiting for a result means delaying the response to the client browser. On Web apps the time constraint is even more drastic, the developer often desires to launch the procedure and immediately return the page even when the execution lasts only few seconds. The application will retrieve the execution result later, usually via an Ajax call driven by the returned page script.
+
+Frankly I was a bit surprised to see that the responses gravitated either around the SqlClient asynchronous methods (BeginExecute&#8230;) or around having a dedicated process with the sole pupose of maintaining the client connection alive for the duration of the long running procedure.
+
+This problem is perfectly addressed by Service Broker Activation. Since I wanted to preserve the solution for further reference, I decided to put it in as a blog entry, with additional comments. For many of you Service Broker aficionados that read my blog regularly, this article is not innovative as is mostly a rehash of well known techniques I&#8217;ve been talking about on forums for many years now.
+
+I&#8217;m going to use a table to store the result of the procedure execution. In this version I&#8217;ll keep things simple by not allowing for any parameters to be passed to the procedure, nor collecting any execution result set data. So the table will only contain the procedure start time, the execution finish time and any error that occurred during the procedure execution:
+
+<pre><span style="color: Black"></span><span style="color:Blue">create</span><span style="color:Black">&nbsp;</span><span style="color:Blue">table</span><span style="color:Black">&nbsp;[AsyncExecResults]&nbsp;</span><span style="color:Gray">(<br />
+</span><span style="color:Black">	[token]&nbsp;</span><span style="color:Blue">uniqueidentifier</span><span style="color:Black">&nbsp;</span><span style="color:Blue">primary</span><span style="color:Black">&nbsp;</span><span style="color:Blue">key<br />
+</span><span style="color:Black">	</span><span style="color:Gray">,</span><span style="color:Black">&nbsp;[submit_time]&nbsp;</span><span style="color:Blue">datetime</span><span style="color:Black">&nbsp;</span><span style="color:Gray">not</span><span style="color:Black">&nbsp;</span><span style="color:Gray">null<br />
+</span><span style="color:Black">	</span><span style="color:Gray">,</span><span style="color:Black">&nbsp;[start_time]&nbsp;</span><span style="color:Blue">datetime</span><span style="color:Black">&nbsp;</span><span style="color:Gray">null<br />
+</span><span style="color:Black">	</span><span style="color:Gray">,</span><span style="color:Black">&nbsp;[finish_time]&nbsp;</span><span style="color:Blue">datetime</span><span style="color:Black">&nbsp;</span><span style="color:Gray">null<br />
+</span><span style="color:Black">	</span><span style="color:Gray">,</span><span style="color:Black">&nbsp;[error_number]	</span><span style="color:Blue">int</span><span style="color:Black">&nbsp;</span><span style="color:Gray">null<br />
+</span><span style="color:Black">	</span><span style="color:Gray">,</span><span style="color:Black">&nbsp;[error_message]&nbsp;</span><span style="color:Blue">nvarchar</span><span style="color:Gray">(</span><span style="color:Black">2048</span><span style="color:Gray">)</span><span style="color:Black">&nbsp;</span><span style="color:Gray">null);<br />
+</span><span style="color:Black">go<br />
+</pre>
+
+
+<p>
+  Next we&#8217;re going to create the service and queue we need. I will use one single service for both roles (initiator and target) and I won&#8217;t create an explicit contract, relying instead on the predefined DEFAULT contract:
+</p>
+
+
+<pre>
+&lt;/span><span style="color:Blue">create</span><span style="color:Black">&nbsp;</span><span style="color:Blue">queue</span><span style="color:Black">&nbsp;[AsyncExecQueue]</span><span style="color:Gray">;<br />
+</span><span style="color:Black">go<br />
+<br />
+</span><span style="color:Blue">create</span><span style="color:Black">&nbsp;</span><span style="color:Blue">service</span><span style="color:Black">&nbsp;[AsyncExecService]&nbsp;</span><span style="color:Blue">on</span><span style="color:Black">&nbsp;</span><span style="color:Blue">queue</span><span style="color:Black">&nbsp;[AsyncExecQueue]&nbsp;</span><span style="color:Gray">(</span><span style="color:Black">[DEFAULT]</span><span style="color:Gray">);<br />
+</span><span style="color:Black">GO<br />
+</span>
+</pre>
+
+
+<p>
+  Next is the core of our asynchronous execution: the activated procedure. The procedure has to dequeue the message that specifies the user procedure, run the procedure and write the result in the results table. I will also deploy the error handling template I elaborated on my previous article <a href="http://rusanu.com/2009/06/11/exception-handling-and-nested-transactions/" target="_blank">Exception handling and nested transactions</a>:
+</p>
+
+
+<pre>
+<span style="color: Black"></span><span style="color:Blue">create</span><span style="color:Black">&nbsp;</span><span style="color:Blue">procedure</span><span style="color:Black">&nbsp;usp_AsyncExecActivated<br />
+</span><span style="color:Blue">as<br />
+begin<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">set</span><span style="color:Black">&nbsp;</span><span style="color:Blue">nocount</span><span style="color:Black">&nbsp;</span><span style="color:Blue">on</span><span style="color:Gray">;<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">declare</span><span style="color:Black">&nbsp;@h&nbsp;</span><span style="color:Blue">uniqueidentifier<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Gray">,</span><span style="color:Black">&nbsp;@messageTypeName&nbsp;</span><span style="color:Blue">sysname<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Gray">,</span><span style="color:Black">&nbsp;@messageBody&nbsp;</span><span style="color:Blue">varbinary</span><span style="color:Gray">(</span><span style="color:Fuchsia">max</span><span style="color:Gray">)<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Gray">,</span><span style="color:Black">&nbsp;@xmlBody&nbsp;</span><span style="color:Blue">xml<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Gray">,</span><span style="color:Black">&nbsp;@procedureName&nbsp;</span><span style="color:Blue">sysname<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Gray">,</span><span style="color:Black">&nbsp;@startTime&nbsp;</span><span style="color:Blue">datetime<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Gray">,</span><span style="color:Black">&nbsp;@finishTime&nbsp;</span><span style="color:Blue">datetime<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Gray">,</span><span style="color:Black">&nbsp;@execErrorNumber&nbsp;</span><span style="color:Blue">int<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Gray">,</span><span style="color:Black">&nbsp;@execErrorMessage&nbsp;</span><span style="color:Blue">nvarchar</span><span style="color:Gray">(</span><span style="color:Black">2048</span><span style="color:Gray">)<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Gray">,</span><span style="color:Black">&nbsp;@xactState&nbsp;</span><span style="color:Blue">smallint<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Gray">,</span><span style="color:Black">&nbsp;@token&nbsp;</span><span style="color:Blue">uniqueidentifier</span><span style="color:Gray">;<br />
+</span><span style="color:Black">	<br />
+&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">begin</span><span style="color:Black">&nbsp;</span><span style="color:Blue">transaction</span><span style="color:Gray">;<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">begin</span><span style="color:Black">&nbsp;</span><span style="color:Blue">try</span><span style="color:Gray">;<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">receive</span><span style="color:Black">&nbsp;</span><span style="color:Blue">top</span><span style="color:Gray">(</span><span style="color:Black">1</span><span style="color:Gray">)</span><span style="color:Black">&nbsp;<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;@h&nbsp;</span><span style="color:Gray">=</span><span style="color:Black">&nbsp;[conversation_handle]<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Gray">,</span><span style="color:Black">&nbsp;@messageTypeName&nbsp;</span><span style="color:Gray">=</span><span style="color:Black">&nbsp;[message_type_name]<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Gray">,</span><span style="color:Black">&nbsp;@messageBody&nbsp;</span><span style="color:Gray">=</span><span style="color:Black">&nbsp;[message_body]<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">from</span><span style="color:Black">&nbsp;[AsyncExecQueue]</span><span style="color:Gray">;<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">if</span><span style="color:Black">&nbsp;</span><span style="color:Gray">(</span><span style="color:Black">@h&nbsp;</span><span style="color:Gray">is</span><span style="color:Black">&nbsp;</span><span style="color:Gray">not</span><span style="color:Black">&nbsp;</span><span style="color:Gray">null)<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">begin<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">if</span><span style="color:Black">&nbsp;</span><span style="color:Gray">(</span><span style="color:Black">@messageTypeName&nbsp;</span><span style="color:Gray">=</span><span style="color:Black">&nbsp;N</span><span style="color:Red">'DEFAULT'</span><span style="color:Gray">)<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">begin<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Green">--&nbsp;The&nbsp;DEFAULT&nbsp;message&nbsp;type&nbsp;is&nbsp;a&nbsp;procedure&nbsp;invocation.<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Green">--&nbsp;Extract&nbsp;the&nbsp;name&nbsp;of&nbsp;the&nbsp;procedure&nbsp;from&nbsp;the&nbsp;message&nbsp;body.<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Green">--<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">select</span><span style="color:Black">&nbsp;@xmlBody&nbsp;</span><span style="color:Gray">=</span><span style="color:Black">&nbsp;</span><span style="color:Fuchsia">CAST</span><span style="color:Gray">(</span><span style="color:Black">@messageBody&nbsp;</span><span style="color:Blue">as</span><span style="color:Black">&nbsp;</span><span style="color:Blue">xml</span><span style="color:Gray">);<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">select</span><span style="color:Black">&nbsp;@procedureName&nbsp;</span><span style="color:Gray">=</span><span style="color:Black">&nbsp;@xmlBody</span><span style="color:Gray">.</span><span style="color:Black">value</span><span style="color:Gray">(<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Red">'(//procedure/name)[1]'<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Gray">,</span><span style="color:Black">&nbsp;</span><span style="color:Red">'sysname'</span><span style="color:Gray">);<br />
+<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">save</span><span style="color:Black">&nbsp;</span><span style="color:Blue">transaction</span><span style="color:Black">&nbsp;usp_AsyncExec_procedure</span><span style="color:Gray">;<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">select</span><span style="color:Black">&nbsp;@startTime&nbsp;</span><span style="color:Gray">=</span><span style="color:Black">&nbsp;</span><span style="color:Fuchsia">GETUTCDATE</span><span style="color:Gray">();<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">begin</span><span style="color:Black">&nbsp;</span><span style="color:Blue">try<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">exec</span><span style="color:Black">&nbsp;@procedureName</span><span style="color:Gray">;<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">end</span><span style="color:Black">&nbsp;</span><span style="color:Blue">try<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">begin</span><span style="color:Black">&nbsp;</span><span style="color:Blue">catch<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Green">--&nbsp;This&nbsp;catch&nbsp;block&nbsp;tries&nbsp;to&nbsp;deal&nbsp;with&nbsp;failures&nbsp;of&nbsp;the&nbsp;procedure&nbsp;execution<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Green">--&nbsp;If&nbsp;possible&nbsp;it&nbsp;rolls&nbsp;back&nbsp;to&nbsp;the&nbsp;savepoint&nbsp;created&nbsp;earlier,&nbsp;allowing<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Green">--&nbsp;the&nbsp;activated&nbsp;procedure&nbsp;to&nbsp;continue.&nbsp;If&nbsp;the&nbsp;executed&nbsp;procedure&nbsp;<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Green">--&nbsp;raises&nbsp;an&nbsp;error&nbsp;with&nbsp;severity&nbsp;16&nbsp;or&nbsp;higher,&nbsp;it&nbsp;will&nbsp;doom&nbsp;the&nbsp;transaction<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Green">--&nbsp;and&nbsp;thus&nbsp;rollback&nbsp;the&nbsp;RECEIVE.&nbsp;Such&nbsp;case&nbsp;will&nbsp;be&nbsp;a&nbsp;poison&nbsp;message,<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Green">--&nbsp;resulting&nbsp;in&nbsp;the&nbsp;queue&nbsp;disabling.<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Green">--<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">select</span><span style="color:Black">&nbsp;@execErrorNumber&nbsp;</span><span style="color:Gray">=</span><span style="color:Black">&nbsp;</span><span style="color:Fuchsia">ERROR_NUMBER</span><span style="color:Gray">(),<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;@execErrorMessage&nbsp;</span><span style="color:Gray">=</span><span style="color:Black">&nbsp;</span><span style="color:Fuchsia">ERROR_MESSAGE</span><span style="color:Gray">(),<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;@xactState&nbsp;</span><span style="color:Gray">=</span><span style="color:Black">&nbsp;</span><span style="color:Fuchsia">XACT_STATE</span><span style="color:Gray">();<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">if</span><span style="color:Black">&nbsp;</span><span style="color:Gray">(</span><span style="color:Black">@xactState&nbsp;</span><span style="color:Gray">=</span><span style="color:Black">&nbsp;</span><span style="color:Gray">-</span><span style="color:Black">1</span><span style="color:Gray">)<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">begin<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">rollback</span><span style="color:Gray">;<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">raiserror</span><span style="color:Gray">(</span><span style="color:Black">N</span><span style="color:Red">'Unrecoverable&nbsp;error&nbsp;in&nbsp;procedure&nbsp;%s:&nbsp;%i:&nbsp;%s'</span><span style="color:Gray">,</span><span style="color:Black">&nbsp;16</span><span style="color:Gray">,</span><span style="color:Black">&nbsp;10</span><span style="color:Gray">,<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;@procedureName</span><span style="color:Gray">,</span><span style="color:Black">&nbsp;@execErrorNumber</span><span style="color:Gray">,</span><span style="color:Black">&nbsp;@execErrorMessage</span><span style="color:Gray">);<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">end<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">else</span><span style="color:Black">&nbsp;</span><span style="color:Blue">if</span><span style="color:Black">&nbsp;</span><span style="color:Gray">(</span><span style="color:Black">@xactState&nbsp;</span><span style="color:Gray">=</span><span style="color:Black">&nbsp;1</span><span style="color:Gray">)<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">begin<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">rollback</span><span style="color:Black">&nbsp;</span><span style="color:Blue">transaction</span><span style="color:Black">&nbsp;usp_AsyncExec_procedure</span><span style="color:Gray">;<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">end<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">end</span><span style="color:Black">&nbsp;</span><span style="color:Blue">catch<br />
+<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">select</span><span style="color:Black">&nbsp;@finishTime&nbsp;</span><span style="color:Gray">=</span><span style="color:Black">&nbsp;</span><span style="color:Fuchsia">GETUTCDATE</span><span style="color:Gray">();<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">select</span><span style="color:Black">&nbsp;@token&nbsp;</span><span style="color:Gray">=</span><span style="color:Black">&nbsp;[conversation_id]&nbsp;<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">from</span><span style="color:Black">&nbsp;</span><span style="color:Green">sys.conversation_endpoints</span><span style="color:Black">&nbsp;<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">where</span><span style="color:Black">&nbsp;[conversation_handle]&nbsp;</span><span style="color:Gray">=</span><span style="color:Black">&nbsp;@h</span><span style="color:Gray">;<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">if</span><span style="color:Black">&nbsp;</span><span style="color:Gray">(</span><span style="color:Black">@token&nbsp;</span><span style="color:Gray">is</span><span style="color:Black">&nbsp;</span><span style="color:Gray">null)<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">begin<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">raiserror</span><span style="color:Gray">(</span><span style="color:Black">N</span><span style="color:Red">'Internal&nbsp;consistency&nbsp;error:&nbsp;conversation&nbsp;not&nbsp;found'</span><span style="color:Gray">,</span><span style="color:Black">&nbsp;16</span><span style="color:Gray">,</span><span style="color:Black">&nbsp;20</span><span style="color:Gray">);<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">end<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">update</span><span style="color:Black">&nbsp;[AsyncExecResults]&nbsp;</span><span style="color:Blue">set<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[start_time]&nbsp;</span><span style="color:Gray">=</span><span style="color:Black">&nbsp;@starttime<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Gray">,</span><span style="color:Black">&nbsp;[finish_time]&nbsp;</span><span style="color:Gray">=</span><span style="color:Black">&nbsp;@finishTime<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Gray">,</span><span style="color:Black">&nbsp;[error_number]&nbsp;</span><span style="color:Gray">=</span><span style="color:Black">&nbsp;@execErrorNumber<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Gray">,</span><span style="color:Black">&nbsp;[error_message]&nbsp;</span><span style="color:Gray">=</span><span style="color:Black">&nbsp;@execErrorMessage<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">where</span><span style="color:Black">&nbsp;[token]&nbsp;</span><span style="color:Gray">=</span><span style="color:Black">&nbsp;@token</span><span style="color:Gray">;<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">if</span><span style="color:Black">&nbsp;</span><span style="color:Gray">(</span><span style="color:Black">0&nbsp;</span><span style="color:Gray">=</span><span style="color:Black">&nbsp;</span><span style="color:Fuchsia">@@ROWCOUNT</span><span style="color:Gray">)<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">begin<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">raiserror</span><span style="color:Gray">(</span><span style="color:Black">N</span><span style="color:Red">'Internal&nbsp;consistency&nbsp;error:&nbsp;token&nbsp;not&nbsp;found'</span><span style="color:Gray">,</span><span style="color:Black">&nbsp;16</span><span style="color:Gray">,</span><span style="color:Black">&nbsp;30</span><span style="color:Gray">);<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">end<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">end</span><span style="color:Black">&nbsp;</span><span style="color:Blue">conversation</span><span style="color:Black">&nbsp;@h</span><span style="color:Gray">;<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">end</span><span style="color:Black">&nbsp;<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">else</span><span style="color:Black">&nbsp;</span><span style="color:Blue">if</span><span style="color:Black">&nbsp;</span><span style="color:Gray">(</span><span style="color:Black">@messageTypeName&nbsp;</span><span style="color:Gray">=</span><span style="color:Black">&nbsp;N</span><span style="color:Red">'http://schemas.microsoft.com/SQL/ServiceBroker/EndDialog'</span><span style="color:Gray">)<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">begin<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">end</span><span style="color:Black">&nbsp;</span><span style="color:Blue">conversation</span><span style="color:Black">&nbsp;@h</span><span style="color:Gray">;<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">end<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">else</span><span style="color:Black">&nbsp;</span><span style="color:Blue">if</span><span style="color:Black">&nbsp;</span><span style="color:Gray">(</span><span style="color:Black">@messageTypeName&nbsp;</span><span style="color:Gray">=</span><span style="color:Black">&nbsp;N</span><span style="color:Red">'http://schemas.microsoft.com/SQL/ServiceBroker/Error'</span><span style="color:Gray">)<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">begin<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">declare</span><span style="color:Black">&nbsp;@errorNumber&nbsp;</span><span style="color:Blue">int<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Gray">,</span><span style="color:Black">&nbsp;@errorMessage&nbsp;</span><span style="color:Blue">nvarchar</span><span style="color:Gray">(</span><span style="color:Black">4000</span><span style="color:Gray">);<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">with</span><span style="color:Black">&nbsp;</span><span style="color:Blue">xmlnamespaces</span><span style="color:Black">&nbsp;</span><span style="color:Gray">(</span><span style="color:Blue">DEFAULT</span><span style="color:Black">&nbsp;N</span><span style="color:Red">'http://schemas.microsoft.com/SQL/ServiceBroker/Error'</span><span style="color:Gray">)<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">select</span><span style="color:Black">&nbsp;@errorNumber&nbsp;</span><span style="color:Gray">=</span><span style="color:Black">&nbsp;@xmlBody</span><span style="color:Gray">.</span><span style="color:Black">value&nbsp;</span><span style="color:Gray">(</span><span style="color:Red">'(/Error/Code)[1]'</span><span style="color:Gray">,</span><span style="color:Black">&nbsp;</span><span style="color:Red">'INT'</span><span style="color:Gray">),<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;@errorMessage&nbsp;</span><span style="color:Gray">=</span><span style="color:Black">&nbsp;@xmlBody</span><span style="color:Gray">.</span><span style="color:Black">value&nbsp;</span><span style="color:Gray">(</span><span style="color:Red">'(/Error/Description)[1]'</span><span style="color:Gray">,</span><span style="color:Black">&nbsp;</span><span style="color:Red">'NVARCHAR(4000)'</span><span style="color:Gray">);<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">raiserror</span><span style="color:Gray">(</span><span style="color:Black">N</span><span style="color:Red">'A&nbsp;conversation&nbsp;error&nbsp;was&nbsp;encountered:&nbsp;%i:&nbsp;%s'</span><span style="color:Gray">,</span><span style="color:Black">&nbsp;1</span><span style="color:Gray">,</span><span style="color:Black">&nbsp;40</span><span style="color:Gray">,<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;@errorNumber</span><span style="color:Gray">,</span><span style="color:Black">&nbsp;@errorMessage</span><span style="color:Gray">);</span><span style="color:Black">&nbsp;<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">end</span><span style="color:Black">&nbsp;</span><span style="color:Blue">conversation</span><span style="color:Black">&nbsp;@h</span><span style="color:Gray">;<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">end<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">else<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">begin<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">raiserror</span><span style="color:Gray">(</span><span style="color:Black">N</span><span style="color:Red">'Received&nbsp;unexpected&nbsp;message&nbsp;type:&nbsp;%s'</span><span style="color:Gray">,</span><span style="color:Black">&nbsp;16</span><span style="color:Gray">,</span><span style="color:Black">&nbsp;50</span><span style="color:Gray">,</span><span style="color:Black">&nbsp;@messageTypeName</span><span style="color:Gray">);<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">end<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">end<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">commit</span><span style="color:Gray">;<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">end</span><span style="color:Black">&nbsp;</span><span style="color:Blue">try<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">begin</span><span style="color:Black">&nbsp;</span><span style="color:Blue">catch<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">declare</span><span style="color:Black">&nbsp;@error&nbsp;</span><span style="color:Blue">int<br />
+</span><span style="color:Black">	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Gray">,</span><span style="color:Black">&nbsp;@message&nbsp;</span><span style="color:Blue">nvarchar</span><span style="color:Gray">(</span><span style="color:Black">2048</span><span style="color:Gray">);<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">select</span><span style="color:Black">&nbsp;@error&nbsp;</span><span style="color:Gray">=</span><span style="color:Black">&nbsp;</span><span style="color:Fuchsia">ERROR_NUMBER</span><span style="color:Gray">()<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Gray">,</span><span style="color:Black">&nbsp;@message&nbsp;</span><span style="color:Gray">=</span><span style="color:Black">&nbsp;</span><span style="color:Fuchsia">ERROR_MESSAGE</span><span style="color:Gray">()<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Gray">,</span><span style="color:Black">&nbsp;@xactState&nbsp;</span><span style="color:Gray">=</span><span style="color:Black">&nbsp;</span><span style="color:Fuchsia">XACT_STATE</span><span style="color:Gray">();<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">if</span><span style="color:Black">&nbsp;</span><span style="color:Gray">(</span><span style="color:Black">@xactState&nbsp;</span><span style="color:Gray">&lt;&gt;</span><span style="color:Black">&nbsp;0</span><span style="color:Gray">)<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">begin<br />
+</span><span style="color:Black">	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">rollback</span><span style="color:Gray">;<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">end</span><span style="color:Gray">;<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">raiserror</span><span style="color:Gray">(</span><span style="color:Black">N</span><span style="color:Red">'Error:&nbsp;%i,&nbsp;%s'</span><span style="color:Gray">,</span><span style="color:Black">&nbsp;1</span><span style="color:Gray">,</span><span style="color:Black">&nbsp;60</span><span style="color:Gray">,</span><span style="color:Black">&nbsp;&nbsp;@error</span><span style="color:Gray">,</span><span style="color:Black">&nbsp;@message</span><span style="color:Gray">)</span><span style="color:Black">&nbsp;</span><span style="color:Blue">with</span><span style="color:Black">&nbsp;</span><span style="color:Fuchsia">log</span><span style="color:Gray">;<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">end</span><span style="color:Black">&nbsp;</span><span style="color:Blue">catch<br />
+end<br />
+</span><span style="color:Black">go<br />
+</span>
+</pre>
+
+
+<p>
+  To make the procedure activated we need to attach it to our service queue. This will ensure this procedure is run whenever a message arrives to our [AsyncExecService]:
+</p>
+
+
+<pre>
+<span style="color: Black"></span><span style="color:Blue">alter</span><span style="color:Black">&nbsp;</span><span style="color:Blue">queue</span><span style="color:Black">&nbsp;[AsyncExecQueue]<br />
+&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">with</span><span style="color:Black">&nbsp;activation&nbsp;</span><span style="color:Gray">(<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;procedure_name&nbsp;</span><span style="color:Gray">=</span><span style="color:Black">&nbsp;[usp_AsyncExecActivated]<br />
+&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Gray">,</span><span style="color:Black">&nbsp;max_queue_readers&nbsp;</span><span style="color:Gray">=</span><span style="color:Black">&nbsp;1<br />
+&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Gray">,</span><span style="color:Black">&nbsp;</span><span style="color:Blue">execute</span><span style="color:Black">&nbsp;</span><span style="color:Blue">as</span><span style="color:Black">&nbsp;</span><span style="color:Blue">owner<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Gray">,</span><span style="color:Black">&nbsp;</span><span style="color:Blue">status</span><span style="color:Black">&nbsp;</span><span style="color:Gray">=</span><span style="color:Black">&nbsp;</span><span style="color:Blue">on</span><span style="color:Gray">);<br />
+</span><span style="color:Black">go<br />
+</span>
+</pre>
+
+
+<p>
+  And finaly the last piece of the puzzle: the procedure that submits the message to invoke the desired asyncronous executed procedure. This procedure resturns an output parameter &#8216;token&#8217; than can be used to lookup the asynchronous execution result.
+</p>
+
+
+<pre>
+<span style="color: Black"></span><span style="color:Blue">create</span><span style="color:Black">&nbsp;</span><span style="color:Blue">procedure</span><span style="color:Black">&nbsp;[usp_AsyncExecInvoke]<br />
+&nbsp;&nbsp;&nbsp;&nbsp;@procedureName&nbsp;</span><span style="color:Blue">sysname<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Gray">,</span><span style="color:Black">&nbsp;@token&nbsp;</span><span style="color:Blue">uniqueidentifier</span><span style="color:Black">&nbsp;</span><span style="color:Blue">output<br />
+as<br />
+begin<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">declare</span><span style="color:Black">&nbsp;@h&nbsp;</span><span style="color:Blue">uniqueidentifier<br />
+</span><span style="color:Black">	&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Gray">,</span><span style="color:Black">&nbsp;@xmlBody&nbsp;</span><span style="color:Blue">xml<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Gray">,</span><span style="color:Black">&nbsp;@trancount&nbsp;</span><span style="color:Blue">int</span><span style="color:Gray">;<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">set</span><span style="color:Black">&nbsp;</span><span style="color:Blue">nocount</span><span style="color:Black">&nbsp;</span><span style="color:Blue">on</span><span style="color:Gray">;<br />
+<br />
+</span><span style="color:Black">	</span><span style="color:Blue">set</span><span style="color:Black">&nbsp;@trancount&nbsp;</span><span style="color:Gray">=</span><span style="color:Black">&nbsp;</span><span style="color:Fuchsia">@@trancount</span><span style="color:Gray">;<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">if</span><span style="color:Black">&nbsp;@trancount&nbsp;</span><span style="color:Gray">=</span><span style="color:Black">&nbsp;0<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">begin</span><span style="color:Black">&nbsp;</span><span style="color:Blue">transaction<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">else<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">save</span><span style="color:Black">&nbsp;</span><span style="color:Blue">transaction</span><span style="color:Black">&nbsp;usp_AsyncExecInvoke</span><span style="color:Gray">;<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">begin</span><span style="color:Black">&nbsp;</span><span style="color:Blue">try<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">begin</span><span style="color:Black">&nbsp;</span><span style="color:Blue">dialog</span><span style="color:Black">&nbsp;</span><span style="color:Blue">conversation</span><span style="color:Black">&nbsp;@h<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">from</span><span style="color:Black">&nbsp;</span><span style="color:Blue">service</span><span style="color:Black">&nbsp;[AsyncExecService]<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">to</span><span style="color:Black">&nbsp;</span><span style="color:Blue">service</span><span style="color:Black">&nbsp;N</span><span style="color:Red">'AsyncExecService'</span><span style="color:Gray">,</span><span style="color:Black">&nbsp;</span><span style="color:Red">'current&nbsp;database'<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">with</span><span style="color:Black">&nbsp;</span><span style="color:Blue">encryption</span><span style="color:Black">&nbsp;</span><span style="color:Gray">=</span><span style="color:Black">&nbsp;</span><span style="color:Blue">off</span><span style="color:Gray">;<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">select</span><span style="color:Black">&nbsp;@token&nbsp;</span><span style="color:Gray">=</span><span style="color:Black">&nbsp;[conversation_id]<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">from</span><span style="color:Black">&nbsp;</span><span style="color:Green">sys.conversation_endpoints<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">where</span><span style="color:Black">&nbsp;[conversation_handle]&nbsp;</span><span style="color:Gray">=</span><span style="color:Black">&nbsp;@h</span><span style="color:Gray">;<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">select</span><span style="color:Black">&nbsp;@xmlBody&nbsp;</span><span style="color:Gray">=</span><span style="color:Black">&nbsp;</span><span style="color:Gray">(<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">select</span><span style="color:Black">&nbsp;@procedureName&nbsp;</span><span style="color:Blue">as</span><span style="color:Black">&nbsp;[name]<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">for</span><span style="color:Black">&nbsp;</span><span style="color:Blue">xml</span><span style="color:Black">&nbsp;</span><span style="color:Blue">path</span><span style="color:Gray">(</span><span style="color:Red">'procedure'</span><span style="color:Gray">),</span><span style="color:Black">&nbsp;</span><span style="color:Blue">type</span><span style="color:Gray">);<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">send</span><span style="color:Black">&nbsp;</span><span style="color:Blue">on</span><span style="color:Black">&nbsp;</span><span style="color:Blue">conversation</span><span style="color:Black">&nbsp;@h&nbsp;</span><span style="color:Gray">(</span><span style="color:Black">@xmlBody</span><span style="color:Gray">);<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">insert</span><span style="color:Black">&nbsp;</span><span style="color:Blue">into</span><span style="color:Black">&nbsp;[AsyncExecResults]<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Gray">(</span><span style="color:Black">[token]</span><span style="color:Gray">,</span><span style="color:Black">&nbsp;[submit_time]</span><span style="color:Gray">)<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">values<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Gray">(</span><span style="color:Black">@token</span><span style="color:Gray">,</span><span style="color:Black">&nbsp;</span><span style="color:Fuchsia">getutcdate</span><span style="color:Gray">());<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">if</span><span style="color:Black">&nbsp;@trancount&nbsp;</span><span style="color:Gray">=</span><span style="color:Black">&nbsp;0<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">commit</span><span style="color:Gray">;<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">end</span><span style="color:Black">&nbsp;</span><span style="color:Blue">try<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">begin</span><span style="color:Black">&nbsp;</span><span style="color:Blue">catch<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">declare</span><span style="color:Black">&nbsp;@error&nbsp;</span><span style="color:Blue">int<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Gray">,</span><span style="color:Black">&nbsp;@message&nbsp;</span><span style="color:Blue">nvarchar</span><span style="color:Gray">(</span><span style="color:Black">2048</span><span style="color:Gray">)<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Gray">,</span><span style="color:Black">&nbsp;@xactState&nbsp;</span><span style="color:Blue">smallint</span><span style="color:Gray">;<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">select</span><span style="color:Black">&nbsp;@error&nbsp;</span><span style="color:Gray">=</span><span style="color:Black">&nbsp;</span><span style="color:Fuchsia">ERROR_NUMBER</span><span style="color:Gray">()<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Gray">,</span><span style="color:Black">&nbsp;@message&nbsp;</span><span style="color:Gray">=</span><span style="color:Black">&nbsp;</span><span style="color:Fuchsia">ERROR_MESSAGE</span><span style="color:Gray">()<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Gray">,</span><span style="color:Black">&nbsp;@xactState&nbsp;</span><span style="color:Gray">=</span><span style="color:Black">&nbsp;</span><span style="color:Fuchsia">XACT_STATE</span><span style="color:Gray">();<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">if</span><span style="color:Black">&nbsp;@xactState&nbsp;</span><span style="color:Gray">=</span><span style="color:Black">&nbsp;</span><span style="color:Gray">-</span><span style="color:Black">1<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">rollback</span><span style="color:Gray">;<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">if</span><span style="color:Black">&nbsp;@xactState&nbsp;</span><span style="color:Gray">=</span><span style="color:Black">&nbsp;1&nbsp;</span><span style="color:Gray">and</span><span style="color:Black">&nbsp;@trancount&nbsp;</span><span style="color:Gray">=</span><span style="color:Black">&nbsp;0<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">rollback<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">if</span><span style="color:Black">&nbsp;@xactState&nbsp;</span><span style="color:Gray">=</span><span style="color:Black">&nbsp;1&nbsp;</span><span style="color:Gray">and</span><span style="color:Black">&nbsp;@trancount&nbsp;</span><span style="color:Gray">&gt;</span><span style="color:Black">&nbsp;0<br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">rollback</span><span style="color:Black">&nbsp;</span><span style="color:Blue">transaction</span><span style="color:Black">&nbsp;usp_my_procedure_name</span><span style="color:Gray">;<br />
+<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">raiserror</span><span style="color:Gray">(</span><span style="color:Black">N</span><span style="color:Red">'Error:&nbsp;%i,&nbsp;%s'</span><span style="color:Gray">,</span><span style="color:Black">&nbsp;16</span><span style="color:Gray">,</span><span style="color:Black">&nbsp;1</span><span style="color:Gray">,</span><span style="color:Black">&nbsp;@error</span><span style="color:Gray">,</span><span style="color:Black">&nbsp;@message</span><span style="color:Gray">);<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">end</span><span style="color:Black">&nbsp;</span><span style="color:Blue">catch<br />
+end<br />
+</span><span style="color:Black">go</span>
+</pre>
+
+
+<p>
+  To test our asynchronous execution infrastructure we create a test procedure and invoke it asynchronously. I will create two test procedures, one that simply waits for 5 seconds to simulate a &#8216;long&#8217; running procedure and one that produces intentionally a primary key violation, to simulate a fault in the asynchronously executed procedure:
+</p>
+
+
+<pre>
+<span style="color: Black"></span><span style="color:Blue">create</span><span style="color:Black">&nbsp;</span><span style="color:Blue">procedure</span><span style="color:Black">&nbsp;[usp_MyLongRunningProcedure]<br />
+</span><span style="color:Blue">as<br />
+begin<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">waitfor</span><span style="color:Black">&nbsp;</span><span style="color:Blue">delay</span><span style="color:Black">&nbsp;</span><span style="color:Red">'00:00:05'</span><span style="color:Gray">;<br />
+</span><span style="color:Blue">end<br />
+</span><span style="color:Black">go<br />
+<br />
+</span><span style="color:Blue">create</span><span style="color:Black">&nbsp;</span><span style="color:Blue">procedure</span><span style="color:Black">&nbsp;[usp_MyFaultyProcedure]<br />
+</span><span style="color:Blue">as<br />
+begin<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">set</span><span style="color:Black">&nbsp;</span><span style="color:Blue">nocount</span><span style="color:Black">&nbsp;</span><span style="color:Blue">on</span><span style="color:Gray">;<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">declare</span><span style="color:Black">&nbsp;@t&nbsp;</span><span style="color:Blue">table</span><span style="color:Black">&nbsp;</span><span style="color:Gray">(</span><span style="color:Black">id&nbsp;</span><span style="color:Blue">int</span><span style="color:Black">&nbsp;</span><span style="color:Blue">primary</span><span style="color:Black">&nbsp;</span><span style="color:Blue">key</span><span style="color:Gray">);<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">insert</span><span style="color:Black">&nbsp;</span><span style="color:Blue">into</span><span style="color:Black">&nbsp;@t&nbsp;</span><span style="color:Gray">(</span><span style="color:Black">id</span><span style="color:Gray">)</span><span style="color:Black">&nbsp;</span><span style="color:Blue">values</span><span style="color:Black">&nbsp;</span><span style="color:Gray">(</span><span style="color:Black">1</span><span style="color:Gray">);<br />
+</span><span style="color:Black">&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Blue">insert</span><span style="color:Black">&nbsp;</span><span style="color:Blue">into</span><span style="color:Black">&nbsp;@t&nbsp;</span><span style="color:Gray">(</span><span style="color:Black">id</span><span style="color:Gray">)</span><span style="color:Black">&nbsp;</span><span style="color:Blue">values</span><span style="color:Black">&nbsp;</span><span style="color:Gray">(</span><span style="color:Black">1</span><span style="color:Gray">);<br />
+</span><span style="color:Blue">end<br />
+</span><span style="color:Black">go<br />
+<br />
+<br />
+</span><span style="color:Blue">declare</span><span style="color:Black">&nbsp;@token&nbsp;</span><span style="color:Blue">uniqueidentifier</span><span style="color:Gray">;<br />
+</span><span style="color:Blue">exec</span><span style="color:Black">&nbsp;usp_AsyncExecInvoke&nbsp;N</span><span style="color:Red">'usp_MyLongRunningProcedure'</span><span style="color:Gray">,</span><span style="color:Black">&nbsp;@token&nbsp;</span><span style="color:Blue">output</span><span style="color:Gray">;<br />
+</span><span style="color:Blue">select</span><span style="color:Black">&nbsp;</span><span style="color:Gray">*</span><span style="color:Black">&nbsp;</span><span style="color:Blue">from</span><span style="color:Black">&nbsp;[AsyncExecResults]&nbsp;</span><span style="color:Blue">where</span><span style="color:Black">&nbsp;[token]&nbsp;</span><span style="color:Gray">=</span><span style="color:Black">&nbsp;@token</span><span style="color:Gray">;<br />
+</span><span style="color:Black">go<br />
+<br />
+</span><span style="color:Blue">declare</span><span style="color:Black">&nbsp;@token&nbsp;</span><span style="color:Blue">uniqueidentifier</span><span style="color:Gray">;<br />
+</span><span style="color:Blue">exec</span><span style="color:Black">&nbsp;usp_AsyncExecInvoke&nbsp;N</span><span style="color:Red">'usp_MyFaultyProcedure'</span><span style="color:Gray">,</span><span style="color:Black">&nbsp;@token&nbsp;</span><span style="color:Blue">output</span><span style="color:Gray">;<br />
+</span><span style="color:Blue">select</span><span style="color:Black">&nbsp;</span><span style="color:Gray">*</span><span style="color:Black">&nbsp;</span><span style="color:Blue">from</span><span style="color:Black">&nbsp;[AsyncExecResults]&nbsp;</span><span style="color:Blue">where</span><span style="color:Black">&nbsp;[token]&nbsp;</span><span style="color:Gray">=</span><span style="color:Black">&nbsp;@token</span><span style="color:Gray">;<br />
+</span><span style="color:Black">go<br />
+<br />
+</span><span style="color:Blue">waitfor</span><span style="color:Black">&nbsp;</span><span style="color:Blue">delay</span><span style="color:Black">&nbsp;</span><span style="color:Red">'00:00:10'</span><span style="color:Gray">;<br />
+</span><span style="color:Blue">select</span><span style="color:Black">&nbsp;</span><span style="color:Gray">*</span><span style="color:Black">&nbsp;</span><span style="color:Blue">from</span><span style="color:Black">&nbsp;[AsyncExecResults]</span><span style="color:Gray">;<br />
+</span><span style="color:Black">go</span>
+</pre>
+
+
+<h3>
+  Activation Context
+</h3>
+
+
+<p>
+  If you check the start time of the second asynchronosuly executed procedure you will notice that it started right after the first one finished. This is because we declare a <tt>max_queue_readers</tt> value of 1 when we set up activation on the queue. This restricts that at most one activated procedure to run at any time, effectively serializing all the asynchronously executed procedures. Whether this is desired or not depends a lot on the actual usage scenario. The limit can be increased as necessary.
+</p>
+
+
+<p>
+  If you start playing around with this method of invoking procedures asynchronously you will notice that sometimes the asynchrnously executed procedure is misteriously denied access to other databases or to server scoped objects. When the same procedure is run manually from a query window in SSMS, it executes fine. This is caused by the EXECUTE AS context under which activation occurs. the details are explained in MSDN&#8217;s <a href="http://msdn.microsoft.com/en-us/library/ms188304.aspx" target="_blank">Extending Database Impersonation by Using EXECUTE AS</a> and myself I had covered this subject repeatedly in this blog. The best solution is to simply turn the trustworthy bit on on the database where the activated procedure runs. When this is not desired, or not allowed by your hosting environment, the solution is to code sign the activated procedure: <a href="http://rusanu.com/2006/03/01/signing-an-activated-procedure/">Signing an activated procedure</a>.
+</p>
+
+
+<p>
+  Using Service Broker Activation to invoke procedures asynchronously may look daunting at beginning. It sure is significantly more complex than just calling BeginExecuteNonQuery. But what needs to be understood is that this is a <strong>reliable</strong> way to invoke the procedure. The client is free to disconnect as soon as it commited the call to <tt>usp_AsyncExecInvoke</tt>. The procedure invoked <i>will</i> run, even if the server is stopped and restarted, even if a mirroring or clustering failover occurs. The server may even crash and be completely rebuilt. As soon as the database is back online, that queue will activate and invoke the asynchronous execution. Such level of reliability is difficult, if not impossible, to guarantee by using a client process.
+</p>

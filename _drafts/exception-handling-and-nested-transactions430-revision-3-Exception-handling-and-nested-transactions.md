@@ -1,0 +1,50 @@
+---
+id: 433
+title: Exception handling and nested transactions
+date: 2009-06-11T09:57:14+00:00
+author: remus
+layout: revision
+guid: http://rusanu.com/2009/06/11/430-revision-3/
+permalink: /2009/06/11/430-revision-3/
+---
+I wanted to use a template for writing procedures that behave as intuitively as possible in regard to nested transactions. My goals were:
+
+  * The procedure template should wrap all the work done in the procedure in a transaction.
+  * The procedures should be able to call each other and the calee should nest its transaction inside the outer caller transaction.
+  * The procedure should only rollback its own work in case of exception, if possible
+
+<pre><span style="color: Black"></span><span style="color:Blue">create</span><span style="color:Black">&nbsp;</span><span style="color:Blue">procedure</span><span style="color:Black">&nbsp;[usp_my_procedure_name]<br />
+</span><span style="color:Blue">as<br />
+begin<br />
+</span><span style="color:Black">	</span><span style="color:Blue">set</span><span style="color:Black">&nbsp;</span><span style="color:Blue">nocount</span><span style="color:Black">&nbsp;</span><span style="color:Blue">on</span><span style="color:Gray">;<br />
+</span><span style="color:Black">	</span><span style="color:Blue">declare</span><span style="color:Black">&nbsp;@trancount&nbsp;</span><span style="color:Blue">int</span><span style="color:Gray">;<br />
+</span><span style="color:Black">	</span><span style="color:Blue">set</span><span style="color:Black">&nbsp;@trancount&nbsp;</span><span style="color:Gray">=</span><span style="color:Black">&nbsp;</span><span style="color:Fuchsia">@@trancount</span><span style="color:Gray">;<br />
+</span><span style="color:Black">	</span><span style="color:Blue">begin</span><span style="color:Black">&nbsp;</span><span style="color:Blue">try<br />
+</span><span style="color:Black">		</span><span style="color:Blue">if</span><span style="color:Black">&nbsp;@trancount&nbsp;</span><span style="color:Gray">=</span><span style="color:Black">&nbsp;0<br />
+			</span><span style="color:Blue">begin</span><span style="color:Black">&nbsp;</span><span style="color:Blue">transaction<br />
+</span><span style="color:Black">		</span><span style="color:Blue">else<br />
+</span><span style="color:Black">			</span><span style="color:Blue">save</span><span style="color:Black">&nbsp;</span><span style="color:Blue">transaction</span><span style="color:Black">&nbsp;usp_my_procedure_name</span><span style="color:Gray">;<br />
+<br />
+</span><span style="color:Black">		</span><span style="color:Green">--&nbsp;Do&nbsp;the&nbsp;actual&nbsp;work&nbsp;here<br />
+</span><span style="color:Black">	<br />
+lbexit</span><span style="color:Gray">:<br />
+</span><span style="color:Black">		</span><span style="color:Blue">if</span><span style="color:Black">&nbsp;@trancount&nbsp;</span><span style="color:Gray">=</span><span style="color:Black">&nbsp;0	<br />
+			</span><span style="color:Blue">commit</span><span style="color:Gray">;<br />
+</span><span style="color:Black">	</span><span style="color:Blue">end</span><span style="color:Black">&nbsp;</span><span style="color:Blue">try<br />
+</span><span style="color:Black">	</span><span style="color:Blue">begin</span><span style="color:Black">&nbsp;</span><span style="color:Blue">catch<br />
+</span><span style="color:Black">		</span><span style="color:Blue">declare</span><span style="color:Black">&nbsp;@error&nbsp;</span><span style="color:Blue">int</span><span style="color:Gray">,</span><span style="color:Black">&nbsp;@message&nbsp;</span><span style="color:Blue">varchar</span><span style="color:Gray">(</span><span style="color:Black">4000</span><span style="color:Gray">),</span><span style="color:Black">&nbsp;@xstate&nbsp;</span><span style="color:Blue">int</span><span style="color:Gray">;<br />
+</span><span style="color:Black">		</span><span style="color:Blue">select</span><span style="color:Black">&nbsp;@error&nbsp;</span><span style="color:Gray">=</span><span style="color:Black">&nbsp;</span><span style="color:Fuchsia">ERROR_NUMBER</span><span style="color:Gray">(),</span><span style="color:Black">&nbsp;@message&nbsp;</span><span style="color:Gray">=</span><span style="color:Black">&nbsp;</span><span style="color:Fuchsia">ERROR_MESSAGE</span><span style="color:Gray">(),</span><span style="color:Black">&nbsp;@xstate&nbsp;</span><span style="color:Gray">=</span><span style="color:Black">&nbsp;</span><span style="color:Fuchsia">XACT_STATE</span><span style="color:Gray">();<br />
+</span><span style="color:Black">		</span><span style="color:Blue">if</span><span style="color:Black">&nbsp;@xstate&nbsp;</span><span style="color:Gray">=</span><span style="color:Black">&nbsp;</span><span style="color:Gray">-</span><span style="color:Black">1<br />
+			</span><span style="color:Blue">rollback</span><span style="color:Gray">;<br />
+</span><span style="color:Black">		</span><span style="color:Blue">if</span><span style="color:Black">&nbsp;@xstate&nbsp;</span><span style="color:Gray">=</span><span style="color:Black">&nbsp;1&nbsp;</span><span style="color:Gray">and</span><span style="color:Black">&nbsp;@trancount&nbsp;</span><span style="color:Gray">=</span><span style="color:Black">&nbsp;0<br />
+			</span><span style="color:Blue">rollback<br />
+</span><span style="color:Black">		</span><span style="color:Blue">if</span><span style="color:Black">&nbsp;@xstate&nbsp;</span><span style="color:Gray">=</span><span style="color:Black">&nbsp;1&nbsp;</span><span style="color:Gray">and</span><span style="color:Black">&nbsp;@trancount&nbsp;</span><span style="color:Gray">&gt;</span><span style="color:Black">&nbsp;0<br />
+			</span><span style="color:Blue">rollback</span><span style="color:Black">&nbsp;</span><span style="color:Blue">transaction</span><span style="color:Black">&nbsp;usp_my_procedure_name</span><span style="color:Gray">;<br />
+<br />
+</span><span style="color:Black">		</span><span style="color:Blue">raiserror</span><span style="color:Black">&nbsp;</span><span style="color:Gray">(</span><span style="color:Red">'usp_my_procedure_name:&nbsp;%d:&nbsp;%s'</span><span style="color:Gray">,</span><span style="color:Black">&nbsp;11</span><span style="color:Gray">,</span><span style="color:Black">&nbsp;1</span><span style="color:Gray">,</span><span style="color:Black">&nbsp;@error</span><span style="color:Gray">,</span><span style="color:Black">&nbsp;@message</span><span style="color:Gray">)</span><span style="color:Black">&nbsp;</span><span style="color:Blue">with</span><span style="color:Black">&nbsp;</span><span style="color:Fuchsia">log</span><span style="color:Gray">;<br />
+</span><span style="color:Black">		</span><span style="color:Blue">return</span><span style="color:Gray">;<br />
+</span><span style="color:Black">	</span><span style="color:Blue">end</span><span style="color:Black">&nbsp;</span><span style="color:Blue">catch</span><span style="color:Black">	<br />
+</span><span style="color:Blue">end</span>
+</pre>
+
+This is my stored procedure template I&#8217;ve been using for some time now on all my procedures. The goal is to provide, as much as possible, a transactional consistent execution. On exception the procedure should only roll back its own work and propagate the exception up the call stack and let the caller decide whether to resume the work or a

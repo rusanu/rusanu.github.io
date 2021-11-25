@@ -1,0 +1,86 @@
+---
+id: 1728
+title: Registry bloat after SQL Server 2012 SP1 installation
+date: 2013-02-15T04:55:09+00:00
+author: remus
+layout: post
+guid: http://rusanu.com/?p=1728
+permalink: /2013/02/15/registry-bloat-after-sql-server-2012-sp1-installation/
+categories:
+  - SQL 2012
+  - Troubleshooting
+---
+SQL Server 2012 installation has the potential to leave an <tt>msiexec.exe</tt> installer process running after the installation finishes, as described in [Windows Installer starts repeatedly after you install SQL Server 2012 SP1](http://support.microsoft.com/kb/2793634):
+
+> After you install SQL Server 2012 SP1 on a computer, the Windows Installer (Msiexec.exe) process is repeatedly started to repair certain assemblies. Additionally, the following events are logged in the Application log:  
+> EventId: 1004  
+> Source: MsiInstaller  
+> Description: Detection of product &#8216;{A7037EB2-F953-4B12-B843-195F4D988DA1}&#8217;, feature &#8216;SQL\_Tools\_Ans&#8217;, Component &#8216;{0CECE655-2A0F-4593-AF4B-EFC31D622982}&#8217; failed. The resource&#8221;does not exist.
+> 
+> EventId: 1001  
+> Source: MsiInstaller  
+> Description: Detection of product &#8216;{A7037EB2-F953-4B12-B843-195F4D988DA1}&#8217;, feature &#8216;SQL\_Tools\_Ans’ failed during request for component &#8216;{6E985C15-8B6D-413D-B456-4F624D9C11C2}&#8217;
+> 
+> When this issue occurs, you experience high CPU usage.  
+> Cause
+> 
+> This issue occurs because the SQL Server 2012 components reference mismatched assemblies. This behavior causes native image generation to fail repeatedly on certain assemblies. Therefore, a repair operation is initiated on the installer package. 
+
+But the this problem has a much sinister side effect: it causes growth of the HKLM\Software registry hive. Except for the System hive, all the other registry hives are still restricted in size to a max of 2GB, see [Registry Storage Space](http://msdn.microsoft.com/en-us/library/windows/desktop/ms724881%28v=vs.85%29.aspx):  
+
+
+> Views of the registry files are mapped in paged pool memory&#8230;The maximum size of a registry hive is 2 GB, except for the system hive.
+
+<!--more-->
+
+As the runaway msiexec process bloats the Software registry hive your system may approach the maximum hive size and, even before that maximum is reached, the large hive will consume more and more of the very precious kernel paged pool memory. The system may start to exhibit erratic behavior, complaining about low &#8216;resources&#8217;, closing connections and other symptoms. For an example of how this erratic bahior may manifest, read [Why the registry size can cause problems with your SQL 2012 AlwaysOn/Failover Cluster setup](http://blogs.msdn.com/b/sqljourney/archive/2012/10/25/why-the-registry-size-can-cause-problems-with-your-sql-2012-alwayson-setup.aspx).
+
+<p class="callout float-right">
+  If you installed SQL Server 2012 SP1 recently follow the steps in KB2793634 for a fix
+</p>
+
+The biggest problem with the registry bloat erratic behavior is that it occurs long after the SQL Server 2012 SP1 installation and is quite difficult, even for expert users, to trace back the causality of the server erratic behavior to the SP1 installation. If you are uncertain if this issue is affecting you, run <tt>dir %SystemRoot%\system32\config</tt> and check the size of the <tt>SOFTWARE</tt> file, which is the storage of this registry hive. If you are indeed dealing with a bloated registry hive, visit [KB2498915: How to Compress &#8220;Bloated&#8221; Registry Hives](http://support.microsoft.com/kb/2498915):
+
+> 1) Boot from a [WinPE disk](http://technet.microsoft.com/en-us/library/cc766093(WS.10).aspx).  
+> 2) Open regedit while booted in WinPe, load the bloated hive under HLKM. (e.g. HKLM\Bloated)  
+> 3) Once the bloated hive has been loaded, export the loaded hive as a &#8220;Registry Hive&#8221; file with a unique name. (e.g. %windir%\system32\config\compressedhive)  
+> a) You can use dir from a command line to verify the old and new sizes of the registry hives.  
+> 4) Unload the bloated hive from regedit. (If you get an error here, close the registry editor. Then reopen the registry editor and try again.)  
+> 5) Rename the hives so that you will boot with the compressed hive.  
+> e.g.  
+> <tt>c:\windows\system32\config\ren software software.old</tt>  
+> <tt>c:\windows\system32\config\ren compressedhive software</tt> 
+
+**Update**: At the time of writing this the SQL Server SP1 download page recommends installing the [KB2793634](http://support.microsoft.com/kb/2793634). Kind folk that have been in the trenches and had to deal with this problem have also give me more feedback about the symptoms and solutions. I&#8217;ve been told that if the registry is _already_ bloated due to the msiexec issue then applying the [KB2793634](http://support.microsoft.com/kb/2793634) will not be enough. The fix only prevents further auto-restarts of msiexec, but it does not compress the registry. The following registry keys \*may\* be already huge:
+
+  * <tt>HKLM\Software\Wow6432Node\Microsoft\.NETFramework\v2.0.50.27\NGENService</tt>
+  * <tt>HKLM\SOFTWARE\Microsoft\.NETFramework\v2.0.50727\NGENService</tt>
+  * <tt>HKLM\Software\Wow6432Node\Microsoft\.NETFramework\v4.0.30319\NGENService</tt>
+  * <tt>HKLM\SOFTWARE\Microsoft\.NETFramework\v4.0.30319\NGENService</tt>
+
+Symptoms of registry hive bloat include, but are not limited to:
+
+  * Cluster service is crashing and &#8220;The Group Policy Client service failed the logon. Insufficient system resources exist to complete the requested service&#8221; are logged into the event viewer log.
+  * It is impossible to perform additional installations, or you can do this just shortly after rebooting the server.
+  * Users with domain accounts are unable to logon on the machine. When they log in a temporary profile is loaded.
+  * In Server Manager the Roles and Features are not listed anymore.
+  * Many actions are prevented with the error message &#8221; Insufficient system resources exist to complete the requested service&#8221;.
+
+The recommended action is to open a support case and contact CSS. If you are brave, can&#8217;t afford CSS support contracts, and you are convinced that the problems you&#8217;re experiencing is due to the SQL Server 2012 SP1 registry bload, you may try the following **at your own risk**:
+
+  1. Install the [KB2793634](http://support.microsoft.com/kb/2793634) hot fix, as per the procedure described in the KB article.
+  2. From <tt>cmd</tt> prompt run <tt>%SystemRoot%\Microsoft.Net\Framework\v4.0.30319\ngen.exe executequeueditems</tt> and <tt>%SystemRoot%\Microsoft.Net\Framework64\v4.0.30319\ngen.exe executequeueditems</tt>
+  3. Compress the registry hive using a WinPE disk or from the Windows recovery mode (press <tt>F8</tt> at the boot screen). Note that the Windows system on which you attempt to compress the hive must have the [KB973817](http://support.microsoft.com/kb/973817) installed: _The Reg.exe utility does not compress a registry key when the utility saves a registry key to a hive file on a computer that is running Windows Server 2008, Windows Vista, Windows 7 or Windows Server 2008 R2_.
+  4. After the compression procedure is complete, from a <tt>cmd</tt> prompt run <tt>SCF /SCANNOW</tt>. See [KB929833](http://support.microsoft.com/kb/929833) for more details.
+
+In the case when the registry hive bloat prevents even the installation of the SP1 hotfix you may attempt increasing the hive size to 4GB, see [<tt>RegistrySizeLimit</tt>](http://technet.microsoft.com/en-us/library/cc963194.aspx). Editing this particular registry key to a wrong value can result in your system blue-screening during boot due to BAD\_SYSTEM\_CONFIG_INFO kernel panic. Each boot. Use at your own risk. The correct value to put is <tt>0xFFFFFFFF</tt>.
+
+<p class="callout float-right">
+  If you plan to upgrade an RTM SQL Server 2012 instance to SP1 apply the slipstream SP1+CU2
+</p>
+
+If you have an RTM instance of SQL Server 2012 and plan to upgrade it to SP1 it is recommended to create a slipstream SP1+CU2 instalation and apply this instead. See [Product Updates in SQL Server 2012 Installation](http://msdn.microsoft.com/en-us/library/hh231670.aspx), in SQL Server 2012 the slipstream functionality has been renamed to Product Updates:
+
+> The Product Update feature replaces the Slipstream functionality that was available in SQL Server 2008 PCU1. Therefore the command-line parameters, /PCUSource and /CUSource, associated with Slipstream functionality should no longer be used. The parameters will continue to work, but may be removed in a future release of SQL Server Setup. The /UpdateSource parameter combines the functionality of the Slipstream parameters.
+
+Frankly I think the term &#8216;slipstream&#8217; was less ambiguous than &#8216;product update&#8217; but then who am I to complain&#8230;

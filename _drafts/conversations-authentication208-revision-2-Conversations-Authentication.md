@@ -1,0 +1,90 @@
+---
+id: 210
+title: Conversations Authentication
+date: 2008-11-04T15:15:26+00:00
+author: remus
+layout: revision
+guid: http://rusanu.com/2008/11/04/208-revision-2/
+permalink: /2008/11/04/208-revision-2/
+---
+I have covered before how <a href="http://rusanu.com/2008/10/23/how-does-certificate-based-authentication-work/" target="_blank">certificate based authentication works for endpoints</a>. I think is only fair to have a similar article covering how services use certificates for authentication and security. Service Broker conversations are very different though from endpoints in the way they use certificates for authentication and security. Unfortunately there is no similar protocol I could reffer to, like it was the case with endpoints and TLS.
+
+Service Broker conversations need authentication in order to allow or reject the sender of a message as being permitted to send messages to a destination service. The message _sender_ in this context is the service that initiated the conversation. In Service Broker does not authenticate the user that sent a message (ie. the user logged in that issues the <tt>SEND</tt> or <tt>BEGIN CONVERSATION</tt> statement). Because Service Broker is designed as a mean to communicate between applications, users connected to an application are a _local_ concept that cannot be used for authentication purposes remotely. For example when Joe from accounting logs in to the Accounting application and this application has some data from the Inventory application, this later application will authorize the _Accounting application_ not _Joe_. Perhaps the Inventory application doesn&#8217;t even have Joe&#8217;s credentials, and no one wants to add additional tight coupling between the applications by having them be aware of each other user base just to be able to communicate.
+
+<!--more-->
+
+Conversations are authorized to send messages to a service if the <tt>SEND</tt> permission is granted on the target service to the initiator service. Because the SQL Server security infrastructure does not allow for permissions to be granted to anything else than a principal, there has to be a way of mapping the sender service to a database principal. This is where certificates come in: the sender service will add to the message a certificate to which it posses the private key and will prove this said private key possession by signing the message with this private key. The target service can verify the message signature to validate that the sender indeed has possession of the private key (thus in fact authenticating the message sender) and then it can authorize the sender.
+
+In addition the sender has to ensure that the message can only be processed by the intended target so it will encrypt the message using the target&#8217;s certificate. Since only the target has the corresponding private key, only the target can decrypt the message.
+
+The certificates used are not validated for anything but valid from and expiry dates. Just as in the case with endpoint certificate based authentication there is no verification of the certificate properties, nor does the certificate has to be signed by a trusted authority. Because the certificates have to be deployed in the database then the mere presence of the certificate is indication that the certificate can be trusted, because it was added to the database by a trusted person (the administrator or somebody trusted by the administrator).
+
+At least this is how authentication works from a 10000 feet overview. The actual implementation, of course, has some details every here and there.
+
+First, as anybody with experience in cryptography would expect, the messages are not actually encrypted with a public key of a certificate. Asymmetric key operations are very slow and in practice always one has to use a symmetric key and use the asymmetric key to exchange the symmetric key. Service Broker conversations are no different and they use a symmetric key for message encryption. The key is actually stored in the database in the base tables that make up the <tt><span style="color:Green">sys.conversation_endpoints</span></tt> metadata catalog. Using an <a href="http://msdn.microsoft.com/en-us/library/ms178068(SQL.90).aspx" target="_blank">administrative connection</a> you can actually inspect the session key for existing conversations in a database:
+
+<pre><span style="color: Black"></span><span style="color:Blue">select</span><span style="color:Black"> outseskey</span><span style="color:Gray">,</span><span style="color:Black"> inseskey </span><span style="color:Blue">from</span><span style="color:Black"> sys.sysdercv</span><span style="color:Gray">;</span></pre>
+
+The keys are stored encrypted in the database using the database master key. Each conversation has two session keys, one used in each direction of traffic. All messages flowing in one direction use the key associated with that drection. That means that each conversation endpoint (initiator or target) uses the &#8216;outseskey&#8217; to encrypt messages it sends and &#8216;inseskey&#8217; to decrypt messages it receives. Each endpoint generates it&#8217;s own &#8216;outseskey&#8217; and sends it over to the other side. Also each key has an associated ID, which is a GUID generated along with the key. There is no added security benefit from having different session keys in each direction, so the reason they are distinct is a different one: this way each endpoint can decide at any moment to change the session key used. Although this feature is not implemented in SQL Server, Service Broker protocol was designed to be capable of changing session keys to support very long lived conversations (years).
+
+### Session Key Exchange
+
+The session keys generated by each conversation endpoint are sent over to the other conversation endpoint with the first message flowing in that direction. This first message contains an extra header (known as the Dialog Security Header, or DSH) which embeds the certificates associated with this conversation as well as the encrypted session key and the information needed to decrypt this session key. The conversation session key is not encrypted directly with the public certificate key of the target, but instead an intermediate symmetric key called the &#8216;key exchange key&#8217; (aka. KEK) is used and the key exchange key is in turn encrypted with the target public certificate key. Because SQL Server reuses the key exchange key when sending to the same target service the target can decrypt the key exchange key only once, cache it and next time it can reuse the already decrypted key exchange key, saving the time required by the lengthy asymmetric key operation for decrypting the key exchange key. These KEK keys are recycled by the sender every few hours so even in a busy environment with many new conversations started, the expensive asymmetric key operations are only needed every few hours. If the target evicts the KEK from it&#8217;s cache then it&#8217;s alright, because the KEK can always be retrieved from the DSH by decrypting it with the asymmetric keys and cached again.
+
+Once the session key was successfully retrieved from the DSH information the message can be decrypted and validated. If this operation is successful the target conversation endpoint is created and the session key used to encrypt this message is stored by the target in <tt>sys.sysderecv.inseskey</tt>. This is why the DSH is not required on subsequent messages after first message, because the target already has its own copy of the session key.
+
+When the first message is sent in the opposite direction (from target to initiator) a new session key exchange occurs. The target generates a session key that is stored in the target&#8217;s <tt>sys.sysderecv.outseskey</tt>, this session key is sent in a DSH with the first message from target to initiator (again encrypted using a KEK generated by target) and the initiator then decrypts the KEK from the DSH, caches this KEK for further operations and uses the KEK to decrypt the session key used by target. The initiator then stores the target&#8217;s session key in it&#8217;s own <tt>sys.sysderecv.inseskey</tt>. Subsequent messages from target to initiator no longer require the DSH because the initiator now has the target&#8217;s session key and can decrypt the messages.
+
+On a side note, it seems like the &#8216;Dialog Security Header&#8217; had a jolly ride in error messages, where it is called either &#8216;service pair security header&#8217; in error messages 11251, 11253 and 11263 or &#8216;security dialog message header&#8217; in error message 28066. Since those error messages were written by yours truly, I must apologize for the inconsistency.
+
+### Service-to-Service Message Encryption
+
+Because Service Broker messages can be routed by intermediary SQL Server instances when <a href="http://sqlserver.ro/forums/permalink/6042/6037/ShowThread.aspx#6037" target="_blank">message forwarding</a> is used those forwarders have to be able to read the necessary routing and forwarding information from the message without possessing the conversation session keys. As such a message is only partially encrypted: only the <tt>message_body</tt> (the &#8216;payload&#8217;) is encrypted. Everything else, including the &#8216;from&#8217; and &#8216;to&#8217; service names, the contract and message type name, the conversation id and message sequence number are in clear text. However this clear information is signed with the session key so that intermediaries cannot alter it.
+
+Do not confuse the service-to-service message encryption with the Service Broker Endpoint <tt>ENCRYPTION</tt> option. The later specifies that the SQL Server-to-SQL Server connection is encrypted and when enabled the entire traffic on the connection is encrypted. Thus a message payload can be encrypted by the service-to-service session keys and in addition the entire message is encrypted by the Endpoint encryption.
+
+### Choice of Certificates
+
+The Dialog Security Header contains information about the two certificates involved: one certificate that identifies the sender that is used to &#8216;sign&#8217; the message (actually only the DSH is signed with this certificate private key, the whole message is signed with the session key) and one certificate used to &#8216;encrypt&#8217; the message so that only the target can decrypt it (again, only the KEK is really encrypted by it, the message is encrypted by the session key).
+
+The certificate used to represent the sender&#8217;s identity is chosen amongst the certificates owned by the owner of the sender service. Service Broker will have to &#8216;choose&#8217; one certificate that satisfies the following criteria:
+
+  * It is owned by the service owner;
+  * It has a private key encrypted with the database master key;
+  * It is marked as <tt>ACTIVE FOR BEGIN_DIALOG</tt>;
+  * It has a valid from date and expiry date;
+
+If multiple certificates satisfy the criteria above, then the one with the latest expiration date is used. I highly recommend this _not_ to be the case. Whenever faced with such ambiguity (e.g service is owned by <tt>dbo</tt> and <tt>dbo</tt> owns multiple certificates) use the <tt>ACTIVE FOR BEGIN_DIALOG</tt> option of the certificate to turn off the undesired ones and leave only one active.
+
+For the certificate used to encrypt the KEK in the DSH there has to be a way to specify for each target service the certificate to be used. This is achieved by the <a href="http://msdn.microsoft.com/en-us/library/ms166042(SQL.90).aspx" target="_blank"><tt>REMOTE SERVICE BINDING</tt></a> objects. So whenever faced with the option to choose a certificate to encrypt the KEK to be sent to a destination, Service Broker will choose a certificate that satisfies these criteria:
+
+  * Is owned by the user specified in the <tt>REMOTE SERVICE BINDING</tt>;
+  * It is marked as <tt>ACTIVE FOR BEGIN_DIALOG</tt>;
+  * It has a valid from date and expiry date;
+
+Same as before, when multiple certificate satisfy these criteria then Service Broker will choose the one with the latest expiration date. Again, use the <tt>ACTIVE FOR BEGIN_DIALOG</tt> option to control which certificates can Service Broker use when faced with an ambiguous situation.
+
+### Authentication and Authorization
+
+I explained how certificates are used to encrypt and sign the KEK on the DSH of the first message, but that does not cover how the initiator and sender is actually authenticated and authorized. With the certificate information retrieved from the DSH the target can look up the certificates used in it&#8217;s own database. The said &#8216;certificate info&#8217; is the certificate Issuer Name and Serial Number. The lookup is a straight SerialNumber/IssuerName seek and the certificate is _not required_ to have the <tt>ACTIVE FOR BEGIN_DIALOG</tt> option enabled. If a matching certificate is found in the database in <tt>sys.certificates</tt> then the authentication process has succeeded: the owner of the found certificate is the principal &#8216;associated&#8217; with the sender service. To be more precise, the owner of the certificate used to sign the DSH is the &#8216;sender&#8217; identity. Once authenticated, this principal can be authorized by checking the <tt>SEND</tt> permission on the target service. The other certificate used, the one that encrypted the KEK, is checked to validate that it&#8217;s owner has CONTROL permission over the target service. This is a somehow unusual step, after all the authentication and authorization has succeeded, but was necessary to prevent abuse by sender of a certificate unrelated to the target service.
+
+If the user authenticated by finding the certificate owner does not have permission to SEND on the service the conversation is errored by the target by sending an error message back to the initiator.
+
+But is the certificate used to encrypt the KEK or that used to sign the DSH cannot be found in the target <tt>sys.certificates</tt> then the target cannot actually decrypt or verify the KEK, and as such it cannot decrypt the session key. Without a session key the target cannot send back any acknowledgment nor error to the sender and it has no choice but to drop the message without sending a response. Since getting the deployment of certificates wrong is one of the most common causes of Service Broker deployment problems, identifying this problem is fairly important. When this happens the server will trace several messages that can alert to the cause:
+
+  * A <a href="http://msdn.microsoft.com/en-us/library/ms191483(SQL.90).aspx" target="_blank">Broker:Message Undeliverable</a> event will be traced with the TextData <tt>'This message could not be delivered because the security context could not be retrieved.'</tt>
+  * A <a href="http://msdn.microsoft.com/en-us/library/ms191001(SQL.90).aspx" target="_blank">Audit Broker Conversation</a> event will be traced with the TextData containing the detail information about the certificate problem encountered (not found, not valid etc).
+
+Although there is no authentication nor authorization occurring when receiving back responses from target to initiator, the certificates look up also happens in order to find the certificate keys to decrypt and validate the KEK. And, just to add to the fun, the target is not required to use the same certificates as the ones used by initiator, so messages can flow successfully from initiator to target but fail decryption from target to initiator. Again the Profiler is your friend to identify such cases.
+
+### Anonymous Conversations
+
+When the <tt>ANONYMOUS</tt> option is specified in a <tt>REMOTE SERVICE BINDING</tt> the conversation security is slightly different. Anonymous conversations are intented to cover scenarios like a web service exposed via Service Broker that can accept requests from anybody. Such a service does not care about the identity of the sender, but the sender cares about the privacy of its messages. For anonymous conversation the sending service is not required to have a certificate with a private message and the only certificate needed is the one of the target service. The DSH contains information for only one certificate, the target&#8217;s one. The KEK is still encrypted with this certificate but the DSH is no longer signed by the sender&#8217;s private key, since there is no private key involved. And since the target does not have the means to send a session key back to the sender (since it doesn&#8217;t have the sender&#8217;s certificate to encrypt it with) the target uses the same session key as the initiator and the first message from target to initiator does _not_ contain a DSH.
+
+### Master Key operations
+
+Because conversation session keys are stored encrypted with the database master key, operations on the database master key can affect existing conversations:
+
+  * If the database master key is regenerated, all existing conversation keys have to be re-encrypted with the new database master key.
+  * If the service key encryption of the database master key is dropped or lost, then the Service Broker background threads loose access to the conversation session keys and as such cannot send nor accept any message on those conversations.
+  * If the database master key is regenerated with force the conversation session keys encrypted by it are lost forever. The conversations affected are errored as they cannot recover from this situation.

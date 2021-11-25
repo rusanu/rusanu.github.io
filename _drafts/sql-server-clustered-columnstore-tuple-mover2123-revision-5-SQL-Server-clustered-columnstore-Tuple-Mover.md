@@ -1,0 +1,28 @@
+---
+id: 2128
+title: SQL Server clustered columnstore Tuple Mover
+date: 2013-12-02T02:51:26+00:00
+author: remus
+layout: revision
+guid: http://rusanu.com/2013/12/02/2123-revision-5/
+permalink: /2013/12/02/2123-revision-5/
+---
+The [updateable clustered columnstore indexes introduced with SQL Server 2014](http://rusanu.com/2013/06/11/sql-server-clustered-columnstore-indexes-at-teched-2013/) rely on a background task called the <tt>Tuple Mover</tt> to periodically compress deltastores into the more efficient columnar format. Deltastores store data in the traditional row-mode (they are B-Trees) and as such are significantly more expensive to query that the compressed columnar segments. How more expensive? They are equivalent to storing the data in an uncompressed Heap and, due to small size (max 1048576 rows per deltastore rowset), they get little traction from parallelism and from read-aheads. It is important for your upload, initial seed and day-to-day ETL activities to achieve a healthy columnstore index, meaning no deltastores or only a few deltastores. To achieve this desired state of a healthy columnstore it is of paramount importance to understand how deltastores are created and removed.
+
+<!--more-->
+
+## How are Deltastores created
+
+Deltastores appear through one of the following events:
+
+  * Trickle <tt>INSERT</tt>: ordinary INSERT statements that do not use the BULK INSERT API. That includes all <tt>INSERT</tt> statements except <tt>INSERT ... SELECT ...</tt>.
+  * <tt>UPDATE</tt>, <tt>MERGE</tt> statements: all updates are implemented in clustered columnstores as a delete of old data and insert of new (modified) data. The insert of new data as result of data updates will always be a trickle insert.
+  * **Undersized** BULK INSERT operations: insufficient number of rows of data inserted using the BULK INSERT API (that is using one of [<tt>IRowsetFastLoad</tt>](http://technet.microsoft.com/en-us/library/ms131708.aspx), use the [SQL Native client ODBC Bulk operation extensions](http://msdn.microsoft.com/en-us/library/ms130792.aspx) or the .Net managed [<tt>SqlBulkCopy</tt>](http://msdn.microsoft.com/en-us/library/system.data.sqlclient.sqlbulkcopy.aspx) class) and <tt>INSERT ... SELECT ...</tt> statements</tt>. These BULK INSERT APIs are often better known by the various tools that expose them, like <tt>bcp.exe</tt> or the &#8216;fast-load&#8217; SSIS OleDB destination. _Insufficient_ rows means that the number of rows submitted **in a batch** is too small to create a compressed segment **in a partition**. The exact number is, I think, around 100000 rows. Bellow this margin, even when BULK INSERT API is used, the rows will be inserted as a deltastore. Above 100000 a compressed segment is created, but do note that a clustered columnstore consisting of 100k rows segments will be sub-optimal. The ideal batch size is 1 million rows, and your ETL process should thrive to achieve this batch size **per partition per thread** (ie each inserting thread should insert 1 million rows for each partition it inserts into).
+
+Of course, the business process may simply not have enough data in an ETL pass to create the desired 1 million rows batch size, or even the minimum 100k rows. That is fine, rows will be saved as deltastores and the deltastores will be later compressed, when they fill up (reach the max size of 1048576 rows). What is important though is that during **initial population** (seeding) the upload process **must** create healthy clustered columnstores. The best option is to upload the data into a row-mode structure (heap or a b-tree) and then issue a <tt>CREATE CLUSTERED COLUMNSTORE INDEX</tt> statement to build the clustered columnstore. This option is the best because only CREATE INDEX on existing data will create appropriately relevant (ie. useful) global dictionaries for the compressed segments.Having good global dictionaries reduces the size of compressed segments significantly, for improved query performance. If you&#8217;re afraid to run <tt>CREATE CLUSTERED COLUMNSTORE INDEX</tt> on a large data set due to possible log growth issues, remember two things: CREATE INDEX is a prime candidate for minimally logging and a clustered columnstore index will **not** generate a huge row-by-row log even in fully logged mode, because it only writes compressed data.
+
+<p class="callout float-right">
+  Global dictionaries are created only during index build
+</p>
+
+If you cannot upload the initial data in row-mode and then create the clustered index, the alternative is to BULK INSERT into an empty clustered columnstore. This will result in a worse quality columnstore because it cannot use global dictionaries, only local dictionaries can be used.

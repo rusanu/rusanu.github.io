@@ -1,0 +1,396 @@
+<p style='line-height:15.6pt'><span style='font-family:Georgia'>Deploying
+SqlDependency in the WCF service itself to leverage the server's Query
+Notification is a relatively easy process, simply follow the SqlDependency
+usage guidelines for any application: start SqlDependency, then attach a
+SqlDependency object instance to your SqlCommand objects, use this object's <span
+class=SpellE>OnChange</span> event to react to changes, and subscribe again
+once notified. This will provide the WCF service with a callback from the
+SqlDependency infrastructure when the database server tables have changed.<o:p></o:p></span></p>
+
+<p style='line-height:15.6pt'>The only thing challenging here is how to
+communicate from the WCF service back to the front end. The answer is a duplex
+channel and a callback that has to be supplied by the client. Here is how such
+a contract would be defined in WCF:<span style='font-family:Georgia'><o:p></o:p></span></p>
+
+<p class=MsoNormal style='mso-layout-grid-align:none;text-autospace:none'><span
+style='font-size:10.0pt;font-family:"Courier New";mso-no-proof:yes'><span
+style='mso-spacerun:yes'>    </span>[<span style='color:teal'>ServiceContract</span>(<o:p></o:p></span></p>
+
+<p class=MsoNormal style='mso-layout-grid-align:none;text-autospace:none'><span
+style='font-size:10.0pt;font-family:"Courier New";mso-no-proof:yes'><span
+style='mso-spacerun:yes'>        </span>Name=<span style='color:maroon'>&quot;WCFQNTableSubscribe&quot;</span>,<o:p></o:p></span></p>
+
+<p class=MsoNormal style='mso-layout-grid-align:none;text-autospace:none'><span
+style='font-size:10.0pt;font-family:"Courier New";mso-no-proof:yes'><span
+style='mso-spacerun:yes'>        </span>Namespace=<span style='color:maroon'>&quot;http://rusanu.com/Samples/WCFQN&quot;</span>,<o:p></o:p></span></p>
+
+<p class=MsoNormal style='mso-layout-grid-align:none;text-autospace:none'><span
+style='font-size:10.0pt;font-family:"Courier New";mso-no-proof:yes'><span
+style='mso-spacerun:yes'>        </span>CallbackContract=<span
+style='color:blue'>typeof</span>(<span style='color:teal'>IWCFQNTableCallback</span>),<o:p></o:p></span></p>
+
+<p class=MsoNormal style='mso-layout-grid-align:none;text-autospace:none'><span
+style='font-size:10.0pt;font-family:"Courier New";mso-no-proof:yes'><span
+style='mso-spacerun:yes'>        </span>SessionMode=<span style='color:teal'>SessionMode</span>.Required)]<o:p></o:p></span></p>
+
+<p class=MsoNormal style='mso-layout-grid-align:none;text-autospace:none'><span
+style='font-size:10.0pt;font-family:"Courier New";mso-no-proof:yes'><span
+style='mso-spacerun:yes'>    </span><span style='color:blue'>public</span> <span
+style='color:blue'>interface</span> <span style='color:teal'>IWCFQNTableSubscribe<o:p></o:p></span></span></p>
+
+<p class=MsoNormal style='mso-layout-grid-align:none;text-autospace:none'><span
+style='font-size:10.0pt;font-family:"Courier New";mso-no-proof:yes'><span
+style='mso-spacerun:yes'>    </span>{<o:p></o:p></span></p>
+
+<p class=MsoNormal style='mso-layout-grid-align:none;text-autospace:none'><span
+style='font-size:10.0pt;font-family:"Courier New";mso-no-proof:yes'><span
+style='mso-spacerun:yes'>        </span>[<span style='color:teal'>OperationContract</span>(IsOneWay=<span
+style='color:blue'>true</span>)]<o:p></o:p></span></p>
+
+<p class=MsoNormal style='mso-layout-grid-align:none;text-autospace:none'><span
+style='font-size:10.0pt;font-family:"Courier New";mso-no-proof:yes'><span
+style='mso-spacerun:yes'>        </span><span style='color:blue'>void</span>
+Subscribe(<span style='color:blue'>string</span> cookie, <span
+style='color:blue'>string</span> sql);<o:p></o:p></span></p>
+
+<p class=MsoNormal style='mso-layout-grid-align:none;text-autospace:none'><span
+style='font-size:10.0pt;font-family:"Courier New";mso-no-proof:yes'><span
+style='mso-spacerun:yes'>    </span>}<o:p></o:p></span></p>
+
+<p class=MsoNormal style='mso-layout-grid-align:none;text-autospace:none'><span
+style='font-size:10.0pt;font-family:"Courier New";mso-no-proof:yes'><o:p>&nbsp;</o:p></span></p>
+
+<p class=MsoNormal style='mso-layout-grid-align:none;text-autospace:none'><span
+style='font-size:10.0pt;font-family:"Courier New";mso-no-proof:yes'><span
+style='mso-spacerun:yes'>    </span><span style='color:blue'>public</span> <span
+style='color:blue'>interface</span> <span style='color:teal'>IWCFQNTableCallback<o:p></o:p></span></span></p>
+
+<p class=MsoNormal style='mso-layout-grid-align:none;text-autospace:none'><span
+style='font-size:10.0pt;font-family:"Courier New";mso-no-proof:yes'><span
+style='mso-spacerun:yes'>    </span>{<o:p></o:p></span></p>
+
+<p class=MsoNormal style='mso-layout-grid-align:none;text-autospace:none'><span
+style='font-size:10.0pt;font-family:"Courier New";mso-no-proof:yes'><span
+style='mso-spacerun:yes'>        </span>[<span style='color:teal'>OperationContract</span>(IsOneWay
+= <span style='color:blue'>true</span>)]<o:p></o:p></span></p>
+
+<p class=MsoNormal style='mso-layout-grid-align:none;text-autospace:none'><span
+style='font-size:10.0pt;font-family:"Courier New";mso-no-proof:yes'><span
+style='mso-spacerun:yes'>        </span><span style='color:blue'>void</span>
+Callback(<span style='color:blue'>string</span> cookie, <span style='color:
+teal'>DataSet</span> data);<o:p></o:p></span></p>
+
+<p class=MsoNormal style='mso-layout-grid-align:none;text-autospace:none'><span
+style='font-size:10.0pt;font-family:"Courier New";mso-no-proof:yes'><o:p>&nbsp;</o:p></span></p>
+
+<p style='line-height:15.6pt'><span style='font-family:Georgia'>The important
+things here are the <span class=SpellE>CallbackContract</span> attribute
+specifying the contract the WCF service should use to callback on the client
+and the <span class=SpellE>IsOneWay</span> attribute on the two contracts to
+specify an asynchronous bidirectional contract.<o:p></o:p></span></p>
+
+<p style='line-height:15.6pt'><span style='font-family:Georgia'>Since we’re going
+to callback the client each time the data is changed, I thought to actually
+send the new dataset with each callback. The client subscribes to the data and
+does not get back any data in the Subscribe call, but the WCF service will
+immediately call him back on the supplied callback, providing the dataset with
+the current state of the data. After that each time the data is changed the WCF
+service will callback again the client with a new dataset. In my example the
+SQL query that is being submitted to retrieve the data is actually supplied by
+the client, in a real world scenario of course the client would request some
+business data, not some arbitrary SQL.<o:p></o:p></span></p>
+
+<p style='line-height:15.6pt'><span style='font-family:Georgia'>The WCF service
+runs the query, fills a dataset with the result set and calls back the client
+passing back the resulted dataset:<o:p></o:p></span></p>
+
+<p class=MsoNormal style='mso-layout-grid-align:none;text-autospace:none'><span
+style='font-size:10.0pt;font-family:"Courier New";mso-no-proof:yes'><span
+style='mso-spacerun:yes'>        </span><span style='color:blue'>public</span> <span
+style='color:blue'>void</span> SubmitDataRequest()<o:p></o:p></span></p>
+
+<p class=MsoNormal style='mso-layout-grid-align:none;text-autospace:none'><span
+style='font-size:10.0pt;font-family:"Courier New";mso-no-proof:yes'><span
+style='mso-spacerun:yes'>        </span>{<o:p></o:p></span></p>
+
+<p class=MsoNormal style='mso-layout-grid-align:none;text-autospace:none'><span
+style='font-size:10.0pt;font-family:"Courier New";mso-no-proof:yes'><span
+style='mso-spacerun:yes'>            </span><span style='color:teal'>SqlConnectionStringBuilder</span>
+scsb = <span style='color:blue'>new</span> <span style='color:teal'>SqlConnectionStringBuilder</span>(<span
+style='color:teal'>Settings</span>.Default.connectionString);<o:p></o:p></span></p>
+
+<p class=MsoNormal style='mso-layout-grid-align:none;text-autospace:none'><span
+style='font-size:10.0pt;font-family:"Courier New";mso-no-proof:yes'><span
+style='mso-spacerun:yes'>            </span>scsb.Pooling = <span
+style='color:blue'>true</span>;<o:p></o:p></span></p>
+
+<p class=MsoNormal style='mso-layout-grid-align:none;text-autospace:none'><span
+style='font-size:10.0pt;font-family:"Courier New";mso-no-proof:yes'><o:p>&nbsp;</o:p></span></p>
+
+<p class=MsoNormal style='mso-layout-grid-align:none;text-autospace:none'><span
+style='font-size:10.0pt;font-family:"Courier New";mso-no-proof:yes'><span
+style='mso-spacerun:yes'>            </span><span style='color:teal'>SqlConnection</span>
+conn = <span style='color:blue'>new</span> <span style='color:teal'>SqlConnection</span>(scsb.ConnectionString);<o:p></o:p></span></p>
+
+<p class=MsoNormal style='mso-layout-grid-align:none;text-autospace:none'><span
+style='font-size:10.0pt;font-family:"Courier New";mso-no-proof:yes'><span
+style='mso-spacerun:yes'>            </span>conn.Open();<o:p></o:p></span></p>
+
+<p class=MsoNormal style='mso-layout-grid-align:none;text-autospace:none'><span
+style='font-size:10.0pt;font-family:"Courier New";mso-no-proof:yes'><o:p>&nbsp;</o:p></span></p>
+
+<p class=MsoNormal style='mso-layout-grid-align:none;text-autospace:none'><span
+style='font-size:10.0pt;font-family:"Courier New";mso-no-proof:yes'><span
+style='mso-spacerun:yes'>            </span><span style='color:teal'>SqlCommand</span>
+cmdGetTable = <span style='color:blue'>new</span> <span style='color:teal'>SqlCommand</span>(_sql,
+conn);<o:p></o:p></span></p>
+
+<p class=MsoNormal style='mso-layout-grid-align:none;text-autospace:none'><span
+style='font-size:10.0pt;font-family:"Courier New";mso-no-proof:yes'><o:p>&nbsp;</o:p></span></p>
+
+<p class=MsoNormal style='mso-layout-grid-align:none;text-autospace:none'><span
+style='font-size:10.0pt;font-family:"Courier New";mso-no-proof:yes'><span
+style='mso-spacerun:yes'>            </span><span style='color:green'>// Create
+the associated SqlDependency<o:p></o:p></span></span></p>
+
+<p class=MsoNormal style='mso-layout-grid-align:none;text-autospace:none'><span
+style='font-size:10.0pt;font-family:"Courier New";mso-no-proof:yes'><span
+style='mso-spacerun:yes'>            </span><span style='color:teal'>SqlDependency</span>
+dep = <span style='color:blue'>new</span> <span style='color:teal'>SqlDependency</span>(cmdGetTable);<o:p></o:p></span></p>
+
+<p class=MsoNormal style='mso-layout-grid-align:none;text-autospace:none'><span
+style='font-size:10.0pt;font-family:"Courier New";mso-no-proof:yes'><span
+style='mso-spacerun:yes'>       </span><span
+style='mso-spacerun:yes'>     </span>dep.OnChange += <span style='color:blue'>new</span>
+<span style='color:teal'>OnChangeEventHandler</span>(dep_OnChange);<o:p></o:p></span></p>
+
+<p class=MsoNormal style='mso-layout-grid-align:none;text-autospace:none'><span
+style='font-size:10.0pt;font-family:"Courier New";mso-no-proof:yes'><o:p>&nbsp;</o:p></span></p>
+
+<p class=MsoNormal style='mso-layout-grid-align:none;text-autospace:none'><span
+style='font-size:10.0pt;font-family:"Courier New";mso-no-proof:yes'><span
+style='mso-spacerun:yes'>            </span><span style='color:teal'>DataSet</span>
+ds = <span style='color:blue'>new</span> <span style='color:teal'>DataSet</span>();<o:p></o:p></span></p>
+
+<p class=MsoNormal style='mso-layout-grid-align:none;text-autospace:none'><span
+style='font-size:10.0pt;font-family:"Courier New";mso-no-proof:yes'><span
+style='mso-spacerun:yes'>            </span><span style='color:teal'>SqlDataAdapter</span>
+da = <span style='color:blue'>new</span> <span style='color:teal'>SqlDataAdapter</span>(cmdGetTable);<o:p></o:p></span></p>
+
+<p class=MsoNormal style='mso-layout-grid-align:none;text-autospace:none'><span
+style='font-size:10.0pt;font-family:"Courier New";mso-no-proof:yes'><span
+style='mso-spacerun:yes'>            </span>da.Fill(ds);<o:p></o:p></span></p>
+
+<p class=MsoNormal style='mso-layout-grid-align:none;text-autospace:none'><span
+style='font-size:10.0pt;font-family:"Courier New";mso-no-proof:yes'><o:p>&nbsp;</o:p></span></p>
+
+<p class=MsoNormal style='mso-layout-grid-align:none;text-autospace:none'><span
+style='font-size:10.0pt;font-family:"Courier New";mso-no-proof:yes'><span
+style='mso-spacerun:yes'>            </span><span style='color:green'>// Send
+the new dataset back to the client<o:p></o:p></span></span></p>
+
+<p class=MsoNormal style='mso-layout-grid-align:none;text-autospace:none'><span
+style='font-size:10.0pt;font-family:"Courier New";mso-no-proof:yes'><span
+style='mso-spacerun:yes'>        </span><span
+style='mso-spacerun:yes'>    </span><span style='color:green'>// on it's own
+callback<o:p></o:p></span></span></p>
+
+<p class=MsoNormal style='mso-layout-grid-align:none;text-autospace:none'><span
+style='font-size:10.0pt;font-family:"Courier New";mso-no-proof:yes'><span
+style='mso-spacerun:yes'>            </span>_callback.Callback(_cookie, ds);<o:p></o:p></span></p>
+
+<p style='line-height:15.6pt'><span style='font-size:10.0pt;font-family:"Courier New";
+mso-no-proof:yes'><span style='mso-spacerun:yes'>        </span>}</span><span
+style='font-family:Georgia'><o:p></o:p></span></p>
+
+<p style='line-height:15.6pt'><span style='font-family:Georgia'>When the
+SqlDependency is notified, all it does it invokes again this very same method,
+causing a new dataset to be sent back to the client (and in the process
+subscribing again to be notified):<o:p></o:p></span></p>
+
+<p class=MsoNormal style='mso-layout-grid-align:none;text-autospace:none'><span
+style='font-size:10.0pt;font-family:"Courier New";mso-no-proof:yes'><span
+style='mso-spacerun:yes'>     </span><span style='color:blue'>void</span>
+dep_OnChange(<span style='color:blue'>object</span> sender, <span
+style='color:teal'>SqlNotificationEventArgs</span> e)<o:p></o:p></span></p>
+
+<p class=MsoNormal style='mso-layout-grid-align:none;text-autospace:none'><span
+style='font-size:10.0pt;font-family:"Courier New";mso-no-proof:yes'><span
+style='mso-spacerun:yes'>        </span>{<o:p></o:p></span></p>
+
+<p class=MsoNormal style='mso-layout-grid-align:none;text-autospace:none'><span
+style='font-size:10.0pt;font-family:"Courier New";mso-no-proof:yes'><span
+style='mso-spacerun:yes'>            </span><span style='color:blue'>if</span>
+(e.Type == <span style='color:teal'>SqlNotificationType</span>.Change)<o:p></o:p></span></p>
+
+<p class=MsoNormal style='mso-layout-grid-align:none;text-autospace:none'><span
+style='font-size:10.0pt;font-family:"Courier New";mso-no-proof:yes'><span
+style='mso-spacerun:yes'>            </span>{<o:p></o:p></span></p>
+
+<p class=MsoNormal style='mso-layout-grid-align:none;text-autospace:none'><span
+style='font-size:10.0pt;font-family:"Courier New";mso-no-proof:yes'><span
+style='mso-spacerun:yes'>                </span><span style='color:green'>//
+Submit the SQL back to the server, <o:p></o:p></span></span></p>
+
+<p class=MsoNormal style='mso-layout-grid-align:none;text-autospace:none'><span
+style='font-size:10.0pt;font-family:"Courier New";mso-no-proof:yes'><span
+style='mso-spacerun:yes'>                </span>SubmitDataRequest();<o:p></o:p></span></p>
+
+<p class=MsoNormal style='mso-layout-grid-align:none;text-autospace:none'><span
+style='font-size:10.0pt;font-family:"Courier New";mso-no-proof:yes'><span
+style='mso-spacerun:yes'>            </span>};<o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='font-size:10.0pt;font-family:"Courier New";
+mso-no-proof:yes'><span style='mso-spacerun:yes'>        </span>}</span></p>
+
+<p style='line-height:15.6pt'><span style='font-family:Georgia'>The client
+reacts to the callback by loading the supplied dataset, in my case the client
+simply attaches the dataset to a <span class=SpellE>DataGridView</span> object
+displayed on the form:<o:p></o:p></span></p>
+
+<p class=MsoNormal style='mso-layout-grid-align:none;text-autospace:none'><span
+style='font-size:10.0pt;font-family:"Courier New";color:blue;mso-no-proof:yes'><span
+style='mso-spacerun:yes'>       </span>#region</span><span style='font-size:
+10.0pt;font-family:"Courier New";mso-no-proof:yes'> WCFQNTableSubscribeCallback
+Members<o:p></o:p></span></p>
+
+<p class=MsoNormal style='mso-layout-grid-align:none;text-autospace:none'><span
+style='font-size:10.0pt;font-family:"Courier New";mso-no-proof:yes'><o:p>&nbsp;</o:p></span></p>
+
+<p class=MsoNormal style='mso-layout-grid-align:none;text-autospace:none'><span
+style='font-size:10.0pt;font-family:"Courier New";mso-no-proof:yes'><span
+style='mso-spacerun:yes'>        </span><span style='color:blue'>public</span> <span
+style='color:blue'>void</span> Callback(<span style='color:teal'>Callback</span>
+request)<o:p></o:p></span></p>
+
+<p class=MsoNormal style='mso-layout-grid-align:none;text-autospace:none'><span
+style='font-size:10.0pt;font-family:"Courier New";mso-no-proof:yes'><span
+style='mso-spacerun:yes'>        </span>{<o:p></o:p></span></p>
+
+<p class=MsoNormal style='mso-layout-grid-align:none;text-autospace:none'><span
+style='font-size:10.0pt;font-family:"Courier New";mso-no-proof:yes'><span
+style='mso-spacerun:yes'>            </span>Invoke(<span style='color:blue'>new</span>
+<span style='color:teal'>CallbackInvokeHandler</span>(CallbackInvoke),
+request.data);<o:p></o:p></span></p>
+
+<p class=MsoNormal style='mso-layout-grid-align:none;text-autospace:none'><span
+style='font-size:10.0pt;font-family:"Courier New";mso-no-proof:yes'><span
+style='mso-spacerun:yes'>        </span>}<o:p></o:p></span></p>
+
+<p class=MsoNormal style='mso-layout-grid-align:none;text-autospace:none'><span
+style='font-size:10.0pt;font-family:"Courier New";mso-no-proof:yes'><o:p>&nbsp;</o:p></span></p>
+
+<p class=MsoNormal style='mso-layout-grid-align:none;text-autospace:none'><span
+style='font-size:10.0pt;font-family:"Courier New";color:blue;mso-no-proof:yes'><span
+style='mso-spacerun:yes'>        </span>#endregion<o:p></o:p></span></p>
+
+<p class=MsoNormal style='mso-layout-grid-align:none;text-autospace:none'><span
+style='font-size:10.0pt;font-family:"Courier New";color:blue;mso-no-proof:yes'><o:p>&nbsp;</o:p></span></p>
+
+<p class=MsoNormal style='mso-layout-grid-align:none;text-autospace:none'><span
+style='font-size:10.0pt;font-family:"Courier New";mso-no-proof:yes'><span
+style='mso-spacerun:yes'>        </span><span style='color:blue'>private</span>
+<span style='color:blue'>void</span> CallbackInvoke(<span style='color:teal'>DataSet</span>
+ds)<o:p></o:p></span></p>
+
+<p class=MsoNormal style='mso-layout-grid-align:none;text-autospace:none'><span
+style='font-size:10.0pt;font-family:"Courier New";mso-no-proof:yes'><span
+style='mso-spacerun:yes'>        </span>{<o:p></o:p></span></p>
+
+<p class=MsoNormal style='mso-layout-grid-align:none;text-autospace:none'><span
+style='font-size:10.0pt;font-family:"Courier New";mso-no-proof:yes'><span
+style='mso-spacerun:yes'>            </span>grdViewer.DataSource = ds;<o:p></o:p></span></p>
+
+<p class=MsoNormal style='mso-layout-grid-align:none;text-autospace:none'><span
+style='font-size:10.0pt;font-family:"Courier New";mso-no-proof:yes'><span
+style='mso-spacerun:yes'>      </span><span
+style='mso-spacerun:yes'>      </span>grdViewer.DataMember =
+ds.Tables[0].TableName;<o:p></o:p></span></p>
+
+<p class=MsoNormal style='mso-layout-grid-align:none;text-autospace:none'><span
+style='font-size:10.0pt;font-family:"Courier New";mso-no-proof:yes'><span
+style='mso-spacerun:yes'>        </span>}<o:p></o:p></span></p>
+
+<p class=MsoNormal style='mso-layout-grid-align:none;text-autospace:none'><span
+style='font-size:10.0pt;font-family:"Courier New";mso-no-proof:yes'><o:p>&nbsp;</o:p></span></p>
+
+<p class=MsoNormal><span style='font-size:10.0pt;font-family:"Courier New";
+mso-no-proof:yes'><span style='mso-spacerun:yes'>        </span><span
+style='color:blue'>private</span> <span style='color:blue'>delegate</span> <span
+style='color:blue'>void</span> <span style='color:teal'>CallbackInvokeHandler</span>(<span
+style='color:teal'>DataSet</span> ds);</span></p>
+
+<p style='line-height:15.6pt'><span style='font-family:Georgia'>Because UI
+elements on the form have to be updated on the main form thread, the callback
+in my example is calling using the Invoke method to pass the received dataset
+to the <span class=SpellE>CallbackInvoke</span> method and this one, in turn,
+attaches the grid to the new dataset.<o:p></o:p></span></p>
+
+<p style='line-height:15.6pt'><span style='font-family:Georgia'>The details are
+in how to get a WCF duplex contract up and running. Not every binding supports
+such channels, in my example I use a <span class=SpellE>wsDualHTTPBinding</span>:<o:p></o:p></span></p>
+
+<p class=MsoNormal style='mso-layout-grid-align:none;text-autospace:none'><span
+style='font-size:10.0pt;font-family:"Courier New";color:blue;mso-no-proof:yes'><span
+style='mso-spacerun:yes'>  </span>&lt;</span><span style='font-size:10.0pt;
+font-family:"Courier New";color:maroon;mso-no-proof:yes'>system.serviceModel</span><span
+style='font-size:10.0pt;font-family:"Courier New";color:blue;mso-no-proof:yes'>&gt;<o:p></o:p></span></p>
+
+<p class=MsoNormal style='mso-layout-grid-align:none;text-autospace:none'><span
+style='font-size:10.0pt;font-family:"Courier New";color:blue;mso-no-proof:yes'><span
+style='mso-spacerun:yes'>    </span>&lt;</span><span style='font-size:10.0pt;
+font-family:"Courier New";color:maroon;mso-no-proof:yes'>services</span><span
+style='font-size:10.0pt;font-family:"Courier New";color:blue;mso-no-proof:yes'>&gt;<o:p></o:p></span></p>
+
+<p class=MsoNormal style='mso-layout-grid-align:none;text-autospace:none'><span
+style='font-size:10.0pt;font-family:"Courier New";color:blue;mso-no-proof:yes'><span
+style='mso-spacerun:yes'>      </span>&lt;</span><span style='font-size:10.0pt;
+font-family:"Courier New";color:maroon;mso-no-proof:yes'>service</span><span
+style='font-size:10.0pt;font-family:"Courier New";color:blue;mso-no-proof:yes'>
+</span><span style='font-size:10.0pt;font-family:"Courier New";color:red;
+mso-no-proof:yes'>name</span><span style='font-size:10.0pt;font-family:"Courier New";
+color:blue;mso-no-proof:yes'>=</span><span style='font-size:10.0pt;font-family:
+"Courier New";mso-no-proof:yes'>&quot;<span style='color:blue'>wcfService.WCFQNTableSubscription</span>&quot;<span
+style='color:blue'>&gt;<o:p></o:p></span></span></p>
+
+<p class=MsoNormal style='mso-layout-grid-align:none;text-autospace:none'><span
+style='font-size:10.0pt;font-family:"Courier New";color:blue;mso-no-proof:yes'><span
+style='mso-spacerun:yes'>        </span>&lt;</span><span style='font-size:10.0pt;
+font-family:"Courier New";color:maroon;mso-no-proof:yes'>endpoint</span><span
+style='font-size:10.0pt;font-family:"Courier New";color:blue;mso-no-proof:yes'>
+</span><span style='font-size:10.0pt;font-family:"Courier New";color:red;
+mso-no-proof:yes'>contract</span><span style='font-size:10.0pt;font-family:
+"Courier New";color:blue;mso-no-proof:yes'>=</span><span style='font-size:10.0pt;
+font-family:"Courier New";mso-no-proof:yes'>&quot;<span style='color:blue'>wcfService.IWCFQNTableSubscribe</span>&quot;<span
+style='color:blue'> </span><span style='color:red'>binding</span><span
+style='color:blue'>=</span>&quot;<b style='mso-bidi-font-weight:normal'><span
+style='color:blue'>wsDualHttpBinding</span></b>&quot;<span style='color:blue'>/&gt;<o:p></o:p></span></span></p>
+
+<p class=MsoNormal style='mso-layout-grid-align:none;text-autospace:none'><span
+style='font-size:10.0pt;font-family:"Courier New";color:blue;mso-no-proof:yes'><span
+style='mso-spacerun:yes'>      </span>&lt;/</span><span style='font-size:10.0pt;
+font-family:"Courier New";color:maroon;mso-no-proof:yes'>service</span><span
+style='font-size:10.0pt;font-family:"Courier New";color:blue;mso-no-proof:yes'>&gt;<o:p></o:p></span></p>
+
+<p class=MsoNormal style='mso-layout-grid-align:none;text-autospace:none'><span
+style='font-size:10.0pt;font-family:"Courier New";color:blue;mso-no-proof:yes'><span
+style='mso-spacerun:yes'>    </span>&lt;/</span><span style='font-size:10.0pt;
+font-family:"Courier New";color:maroon;mso-no-proof:yes'>services</span><span
+style='font-size:10.0pt;font-family:"Courier New";color:blue;mso-no-proof:yes'>&gt;<o:p></o:p></span></p>
+
+<p class=MsoNormal><span style='font-size:10.0pt;font-family:"Courier New";
+color:blue;mso-no-proof:yes'><span style='mso-spacerun:yes'>  </span>&lt;/</span><span
+style='font-size:10.0pt;font-family:"Courier New";color:maroon;mso-no-proof:
+yes'>system.serviceModel</span><span style='font-size:10.0pt;font-family:"Courier New";
+color:blue;mso-no-proof:yes'>&gt;</span></p>
+
+<p style='line-height:15.6pt'><span style='font-family:Georgia'>There are other
+binding that support duplex contracts, I based my example on the <span
+class=SpellE>wsDualHTTPBinding</span> just like the MSDN example does: <a
+href="http://msdn2.microsoft.com/en-us/library/ms731184">http://msdn2.microsoft.com/en-us/library/ms731184</a>.
+<o:p></o:p></span></p>
+
+<p style='line-height:15.6pt'>I have uploaded my demo project here: <a
+href="http://rusanu.com/wp-content/uploads/2007/11/wcfqn.zip"><span
+style='font-family:Georgia'>http://rusanu.com/wp-content/uploads/2007/11/wcfqn.zip</span></a><span
+style='font-family:Georgia'><o:p></o:p></span></p>
