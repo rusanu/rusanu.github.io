@@ -1,3 +1,6 @@
-url: http://rusanu.com
+url: https://rusanu.github.io
 name: rusanu.com
 description: RUSANU CONSULTING LLC
+
+plugins:
+  - github-pages
