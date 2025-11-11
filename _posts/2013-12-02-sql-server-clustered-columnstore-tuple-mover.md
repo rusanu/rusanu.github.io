@@ -4,13 +4,13 @@ title: SQL Server clustered columnstore Tuple Mover
 date: 2013-12-02T04:53:42+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/?p=2123
+guid: /?p=2123
 permalink: /2013/12/02/sql-server-clustered-columnstore-tuple-mover/
 categories:
   - Columnstore
   - SQL 2014
 ---
-The [updateable clustered columnstore indexes introduced with SQL Server 2014](http://rusanu.com/2013/06/11/sql-server-clustered-columnstore-indexes-at-teched-2013/) rely on a background task called the <tt>Tuple Mover</tt> to periodically compress deltastores into the more efficient columnar format. Deltastores store data in the traditional row-mode (they are B-Trees) and as such are significantly more expensive to query that the compressed columnar segments. How more expensive? They are equivalent to storing the data in an uncompressed Heap and, due to small size (max 1048576 rows per deltastore rowset), they get little traction from parallelism and from read-aheads. It is important for your upload, initial seed and day-to-day ETL activities to achieve a healthy columnstore index, meaning no deltastores or only a few deltastores. To achieve this desired state of a healthy columnstore it is of paramount importance to understand how deltastores are created and removed.
+The [updateable clustered columnstore indexes introduced with SQL Server 2014](/2013/06/11/sql-server-clustered-columnstore-indexes-at-teched-2013/) rely on a background task called the <tt>Tuple Mover</tt> to periodically compress deltastores into the more efficient columnar format. Deltastores store data in the traditional row-mode (they are B-Trees) and as such are significantly more expensive to query that the compressed columnar segments. How more expensive? They are equivalent to storing the data in an uncompressed Heap and, due to small size (max 1048576 rows per deltastore rowset), they get little traction from parallelism and from read-aheads. It is important for your upload, initial seed and day-to-day ETL activities to achieve a healthy columnstore index, meaning no deltastores or only a few deltastores. To achieve this desired state of a healthy columnstore it is of paramount importance to understand how deltastores are created and removed.
 
 <!--more-->
 

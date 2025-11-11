@@ -4,7 +4,7 @@ title: Troubleshooting Dialogs
 date: 2005-12-20T09:14:04+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/2005/12/20/troubleshooting-dialogs/
+guid: /2005/12/20/troubleshooting-dialogs/
 permalink: /2005/12/20/troubleshooting-dialogs/
 categories:
   - Troubleshooting

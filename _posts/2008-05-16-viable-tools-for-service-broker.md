@@ -4,7 +4,7 @@ title: Viable tools for Service Broker
 date: 2008-05-16T10:05:39+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/2008/05/16/viable-tools-for-service-broker/
+guid: /2008/05/16/viable-tools-for-service-broker/
 permalink: /2008/05/16/viable-tools-for-service-broker/
 categories:
   - Announcements
@@ -20,13 +20,13 @@ Recently I have learned that 3rd party vendors stepped up to the challenge and h
 The  <a href="http://www.quest.com/images/popup.asp?path=/toad-for-sql-server/images/ToadSS30ServiceBroker.jpg&#038;width=1024&#038;height=710" target="_blank">Service Broker Manager</a> tools for Toad are available on all versions (Professional, Xpert and Dev suite), according to this <a href="http://www.quest.com/toad-for-sql-server/configurations-checklist.aspx" target="_blank">comparison chart</a>. After you connect to a SQL Server instance from the Connection Manager you get the option to launch the Service Broker Manager in the tools menu:
 
 <div class="post-image">
-  <a href='http://rusanu.com/wp-content/uploads/2008/05/servicebroker-menu.png' target="_blank"><img src='http://rusanu.com/wp-content/uploads/2008/05/servicebroker-menu.png' alt="Service Broker Manager in Tools menu" width="450" title="Click on the image for a full size view" /></a>
+  <a href='/wp-content/uploads/2008/05/servicebroker-menu.png' target="_blank"><img src='/wp-content/uploads/2008/05/servicebroker-menu.png' alt="Service Broker Manager in Tools menu" width="450" title="Click on the image for a full size view" /></a>
 </div>
 
 The Service Broker Manager has a typical Object Explorer style tool, with a hierarchical tree view of all databases that are enabled for Service Broker and all broker related objects in each database.
 
 <div class="post-image">
-  <a href='http://rusanu.com/wp-content/uploads/2008/05/servicebrokermanager-full.png' target="_blank"><img src='http://rusanu.com/wp-content/uploads/2008/05/servicebrokermanager-full.png' alt="Service Broker Manager Full view" width="450" title="Click on the image for a full size view" /></a>
+  <a href='/wp-content/uploads/2008/05/servicebrokermanager-full.png' target="_blank"><img src='/wp-content/uploads/2008/05/servicebrokermanager-full.png' alt="Service Broker Manager Full view" width="450" title="Click on the image for a full size view" /></a>
 </div>
 
 One thing I like about the Toad model of the Object Explorer is that it has a brief description for each object type definition. If you are new to Service Broker and have never encountered before a Queue, you can click the Description tab and read the definition of a Queue, similar to what you would find in Books On Line on the same subject. The description tab also contains quick action links for the context of the object type, like a &#8216;Create Queue&#8217; link. While the quick link action idea is nice, I find a bit confusing its placement on the &#8216;Definition&#8217; tab.
@@ -36,13 +36,13 @@ As expected the context menu of each object in this tree view has options to vie
 The Service Broker Manager has functionalities that cover all the broker needs, including configuring endpoints, enabling and disabling broker in the database and even setting the trustworthy bit on or off on the database:
 
 <div class="post-image">
-  <a href='http://rusanu.com/wp-content/uploads/2008/05/databaseproperties.png' target="_blank"><img src='http://rusanu.com/wp-content/uploads/2008/05/databaseproperties.png' alt="Service Broker Database properties" title="Click on the image for a full size view" width="450" /></a>
+  <a href='/wp-content/uploads/2008/05/databaseproperties.png' target="_blank"><img src='/wp-content/uploads/2008/05/databaseproperties.png' alt="Service Broker Database properties" title="Click on the image for a full size view" width="450" /></a>
 </div>
 
 Another nice feature of the Service Broker Manager is the fact that it shows conversation endpoints, messages in queues, messages for each conversation and, last but not least, the database transmission queue. The current SQL Server Management Studio for SQL Server 2005 doesn&#8217;t have anything similar. The SQL Server 2008 SSMS has the Broker Statistics Report that also shows the conversations and messages as well as the transmission queue. But the Toad one goes not one, but two steps further. For one it allows you to actually Edit conversations:
 
 <div class="post-image">
-  <a href='http://rusanu.com/wp-content/uploads/2008/05/conversationproperties.png' target="_blank"><img src='http://rusanu.com/wp-content/uploads/2008/05/conversationproperties.png' alt="Conversation Properties" title="Click on the image for a full size view" width="450" /></a>
+  <a href='/wp-content/uploads/2008/05/conversationproperties.png' target="_blank"><img src='/wp-content/uploads/2008/05/conversationproperties.png' alt="Conversation Properties" title="Click on the image for a full size view" width="450" /></a>
 </div>
 
 The only &#8216;editable&#8217; properties on a conversation are it&#8217;s conversation group and its timer. I reckon I was very surprised to see these two properties as editable. I was so used to see them as T-SQL statements (<a href="http://msdn.microsoft.com/en-us/library/ms174987.aspx" target="_blank">MOVE CONVERSATION</a> and <a href="http://msdn.microsoft.com/en-us/library/ms187804.aspx" target="_blank">BEGIN CONVERSATION TIMER</a>) that I have never thought about them as means to &#8216;edit&#8217; a conversation property. Is true that they may appear so for an administrator looking at a conversation, but they serve clear application programming roles related to <a href="http://msdn2.microsoft.com/en-us/library/ms171615.aspx" target="_blank">correlated messages locking</a> (the MOVE CONVERSATION) or to retry mechanisms and time outs (the BEGIN CONVERSATION TIMER).
@@ -50,7 +50,7 @@ The only &#8216;editable&#8217; properties on a conversation are it&#8217;s conv
 And the second &#8216;further step&#8217; Toad offers in regard to conversations is that it actually has options to begin and end conversations and even send a message:
 
 <div class="post-image">
-  <a href='http://rusanu.com/wp-content/uploads/2008/05/send.png' target="_blank"><img src='http://rusanu.com/wp-content/uploads/2008/05/send.png' alt="Send Message" width="150" title="Click on the image for a full size view" /></a>
+  <a href='/wp-content/uploads/2008/05/send.png' target="_blank"><img src='/wp-content/uploads/2008/05/send.png' alt="Send Message" width="150" title="Click on the image for a full size view" /></a>
 </div>
 
 Now all these would make a nice tool for administering Service Broker, with some richer functionality that SSMS offers. But the I saved the best features for last.
@@ -67,26 +67,26 @@ What makes the Toad SSB tool **really** useful are its wizards:
 The Transport Security Configuration Wizard will configure endpoints and transport security between two SQL Server instances, including the exchange of certificates in case of certificate based security. It allows the user to select the desired authentication mode (certificates and/or Windows) and it will take the user step by step through all the necessary settings involved, if needed, including configuring the database master key password, certificate creation etc. The Transport Security Configuration Wizard has to be run only once between any two SQL Server instances.
 
 <div class="post-image">
-  <a href='http://rusanu.com/wp-content/uploads/2008/05/transportsecurity.png' target="_blank"><img src='http://rusanu.com/wp-content/uploads/2008/05/transportsecurity.png' alt="Transport Security Wizard" width="250" title="Click on the image for a full size view" /></a>
+  <a href='/wp-content/uploads/2008/05/transportsecurity.png' target="_blank"><img src='/wp-content/uploads/2008/05/transportsecurity.png' alt="Transport Security Wizard" width="250" title="Click on the image for a full size view" /></a>
 </div>
 
 The Service Broker Application Wizard will take you step by step to setup a complete SSB application between two services. It allows you to create or choose an existing service for initiator and target, create or choose an existing contract and it will configure routing and security between the two services. If it detects that the two services are located on separate SQL Server instances it will launch the Transport Security Configuration Wizard if needed in order to configure the transport security separately. Not only that, but if you create a new queue it will also create a stored procedure for activation, based on a template with a message RECEIVE loop that handles the system Error and EndDialog message types and has a placeholder where you have to put the logic to handle your own contract messages.
 
 <div class="post-image">
-  <a href='http://rusanu.com/wp-content/uploads/2008/05/application.png' target="_blank"><img src='http://rusanu.com/wp-content/uploads/2008/05/application.png' alt="Service Broker Application Wizard" width="250" title="Click on the image for a full size view" /></a>
+  <a href='/wp-content/uploads/2008/05/application.png' target="_blank"><img src='/wp-content/uploads/2008/05/application.png' alt="Service Broker Application Wizard" width="250" title="Click on the image for a full size view" /></a>
 </div>
 
 The two Event Notification Wizards are for configuring a service queue&nbsp; that can handle an event notification. The Wizard will let you choose the event notification scope and type, create an event notification subscription and can even automatically create the service and queue for you, with names derived from the subscription name.
 
 <div class="post-image">
-  <a href='http://rusanu.com/wp-content/uploads/2008/05/eventnotifications.png' target="_blank"><img src='http://rusanu.com/wp-content/uploads/2008/05/eventnotifications.png' alt="Event Notifications Application Wizard" width="250" title="Click on the image for a full size view" /></a>
+  <a href='/wp-content/uploads/2008/05/eventnotifications.png' target="_blank"><img src='/wp-content/uploads/2008/05/eventnotifications.png' alt="Event Notifications Application Wizard" width="250" title="Click on the image for a full size view" /></a>
 </div>
 
 ## Odds and Ends
 
 I consider the Toad Service Broker Manager a much better alternative than SSMS for Service Broker. This should come as no surprise, after all the SSMS tools come for free with a SQL Server purchase and Quest has to make better tools if is to stay in business. I reckon though I was pleasantly surprised by the depth of coverage Toad&#8217;s has to offer for SSB. The Wizards are awesome and exactly what you need to get yourself started on SSB.
 
-But there are some odds and ends, some rough edges in the Service Broker Manager too. Some examples would be that the Service Broker Application Wizard forces you to choose a stored procedure for activation, omitting cases like an external application that might read the queue. Also the Service Broker Application wizard **_only_** lets you configure public security between services and cannot configure secure conversations. How ironic that the Service Listing Manager only lets you configure secure conversations and cannot deal with public security 🙂 _[Correction 5/22: there is a separate [Dialog Security Wizard](http://rusanu.com/2008/05/22/dialog-security-configuration-wizard-in-toad) that allows you to configure both anonymous and full security]_
+But there are some odds and ends, some rough edges in the Service Broker Manager too. Some examples would be that the Service Broker Application Wizard forces you to choose a stored procedure for activation, omitting cases like an external application that might read the queue. Also the Service Broker Application wizard **_only_** lets you configure public security between services and cannot configure secure conversations. How ironic that the Service Listing Manager only lets you configure secure conversations and cannot deal with public security 🙂 _[Correction 5/22: there is a separate [Dialog Security Wizard](/2008/05/22/dialog-security-configuration-wizard-in-toad) that allows you to configure both anonymous and full security]_
 
 There are also some problems I encountered and had to work my way around. For instance the Transport Security Wizard uses the computer administrative share (MACHINE\Admin$) to exchange certificates, which requires the SQL Server instance to be able to access this share. Most times certificates are deployed exactly because the two machines _cannot_ authenticate using Windows, so access to the administrative share is unlikely.
 

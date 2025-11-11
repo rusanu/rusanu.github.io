@@ -4,7 +4,7 @@ title: Have you met ï»¿ ? Say hello to my BOM
 date: 2009-05-21T23:07:08+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/?p=398
+guid: /?p=398
 permalink: '/2009/05/21/have-you-met-i%c2%bb%c2%bf-say-hello-to-my-bom/'
 categories:
   - Troubleshooting

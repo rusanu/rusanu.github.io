@@ -4,7 +4,7 @@ title: 'bugcollect.com: better customer support'
 date: 2009-10-28T22:32:43+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/?p=578
+guid: /?p=578
 permalink: /2009/10/28/bugcollectcom-better-customer-support/
 categories:
   - Announcements

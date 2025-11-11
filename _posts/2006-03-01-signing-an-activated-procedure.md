@@ -4,7 +4,7 @@ title: Signing an activated procedure
 date: 2006-03-01T10:47:09+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/2006/03/01/signing-an-activated-procedure/
+guid: /2006/03/01/signing-an-activated-procedure/
 permalink: /2006/03/01/signing-an-activated-procedure/
 categories:
   - Samples
@@ -17,7 +17,7 @@ tags:
   - signing
 ---
 <p class="MsoPlainText" style="margin: 0in 0in 0pt">
-  <font face="Courier New" size="2">In my previous entry </font><a href="http://rusanu.com/2006/01/12/why-does-feature-not-work-under-activation/"><font face="Courier New" size="2">http://rusanu.com/2006/01/12/why-does-feature-not-work-under-activation/</font></a><font face="Courier New" size="2"> I mentioned that one way to enable an activated procedure to be trusted at the server level is to sign the stored procedure with a certificate and grant appropriate permissions to the signing certificate. In this entry I want to show the details how to do this.</font>
+  <font face="Courier New" size="2">In my previous entry </font><a href="/2006/01/12/why-does-feature-not-work-under-activation/"><font face="Courier New" size="2">/2006/01/12/why-does-feature-not-work-under-activation/</font></a><font face="Courier New" size="2"> I mentioned that one way to enable an activated procedure to be trusted at the server level is to sign the stored procedure with a certificate and grant appropriate permissions to the signing certificate. In this entry I want to show the details how to do this.</font>
 </p>
 
 <p class="MsoPlainText" style="margin: 0in 0in 0pt">
@@ -549,7 +549,7 @@ tags:
 </p>
 
 <p class="MsoPlainText" style="margin: 0in 0in 0pt">
-  <font face="Courier New" size="2">We can see that we get a response, but when we look at the response XML we’re in for the surprise: it contains only one session, instead of all the current sessions on the server! This is because the <strong><span style="color: blue">VIEW SERVER STATE</span></strong> privilege is required to view <strong>all</strong> the sessions other than the current one. When activated, the procedure has lost the necessary privileges and it can only see its own sessions. The reason why this happens is explained in my previous article at </font><a href="http://rusanu.com/2006/01/12/why-does-feature-not-work-under-activation/"><font face="Courier New" size="2">http://rusanu.com/2006/01/12/why-does-feature-not-work-under-activation/</font></a><font face="Courier New" size="2"> </font>
+  <font face="Courier New" size="2">We can see that we get a response, but when we look at the response XML we’re in for the surprise: it contains only one session, instead of all the current sessions on the server! This is because the <strong><span style="color: blue">VIEW SERVER STATE</span></strong> privilege is required to view <strong>all</strong> the sessions other than the current one. When activated, the procedure has lost the necessary privileges and it can only see its own sessions. The reason why this happens is explained in my previous article at </font><a href="/2006/01/12/why-does-feature-not-work-under-activation/"><font face="Courier New" size="2">/2006/01/12/why-does-feature-not-work-under-activation/</font></a><font face="Courier New" size="2"> </font>
 </p>
 
 <p class="MsoPlainText" style="margin: 0in 0in 0pt">

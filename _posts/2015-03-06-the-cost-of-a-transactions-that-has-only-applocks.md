@@ -4,7 +4,7 @@ title: The cost of a transactions that has only applocks
 date: 2015-03-06T05:23:23+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/?p=2420
+guid: /?p=2420
 permalink: /2015/03/06/the-cost-of-a-transactions-that-has-only-applocks/
 categories:
   - Tutorials

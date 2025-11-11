@@ -4,7 +4,7 @@ title: How to use columnstore indexes in SQL Server
 date: 2011-07-13T00:20:43+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/?p=1189
+guid: /?p=1189
 permalink: /2011/07/13/how-to-use-columnstore-indexes-in-sql-server/
 categories:
   - CodeProject
@@ -42,7 +42,7 @@ create unique clustered index cdx_sales_date_id on sales ([date], [id]) on ps([d
 go
 </code></pre>
 
-Notice how I created this table on a partitioning scheme that has one partition a day. See my follow up article [How to update a table with a columnstore index](http://rusanu.com/2011/07/13/how-to-update-a-table-with-a-columnstore-index/) to understand why I choose this particular arrangement. For now, lets populate the table with 1 million &#8216;sales&#8217; facts:
+Notice how I created this table on a partitioning scheme that has one partition a day. See my follow up article [How to update a table with a columnstore index](/2011/07/13/how-to-update-a-table-with-a-columnstore-index/) to understand why I choose this particular arrangement. For now, lets populate the table with 1 million &#8216;sales&#8217; facts:
 
 <pre><code class="prettyprint lang-sql">
 set nocount on;
@@ -80,7 +80,7 @@ select au.* from sys.system_internals_allocation_units au
 go
 </code></pre>
 
-[<img src="http://rusanu.com/wp-content/uploads/2011/07/columnstore_cdx_size.png" alt="" title="columnstore_cdx_size" width="400" class="aligncenter size-full wp-image-1192" />](http://rusanu.com/wp-content/uploads/2011/07/columnstore_cdx_size.png)
+[<img src="/wp-content/uploads/2011/07/columnstore_cdx_size.png" alt="" title="columnstore_cdx_size" width="400" class="aligncenter size-full wp-image-1192" />](/wp-content/uploads/2011/07/columnstore_cdx_size.png)
 
 If we now run a BI type of query like get the number of sales facts and the total sales for a day, the query would have to scan an entire partition, generating 1089 logical reads:
 
@@ -115,7 +115,7 @@ select au.* from sys.system_internals_allocation_units au
 go
 </code></pre>
 
-[<img src="http://rusanu.com/wp-content/uploads/2011/07/columnstore_size.png" alt="" title="columnstore_size" width="400" class="aligncenter size-full wp-image-1195" />](http://rusanu.com/wp-content/uploads/2011/07/columnstore_size.png)
+[<img src="/wp-content/uploads/2011/07/columnstore_size.png" alt="" title="columnstore_size" width="400" class="aligncenter size-full wp-image-1195" />](/wp-content/uploads/2011/07/columnstore_size.png)
 
 Note how the columnstore index has no pages allocated for the IN\_ROW\_DATA allocation unit, but instead has pages allocated to the LOB_DATA allocation unit. So a columnstore index has no rows, instead it uses the BLOB storage to store the column 'segments'. Due to compression possible with column oriented storage, it needs only about one third of the pages needed by the clustered index, although it contains the same columns and the same number of sales facts. If we run again the very same query as before, we'll see how it uses the columnstore index and generates less IO:
 
@@ -130,4 +130,4 @@ Table 'sales'. Scan count 1, logical reads 358, physical reads 0, read-ahead rea
 
 This article is just a very very simplified explanation of how column store indexes can be used. Column oriented storage is one of the major features that ships with the SQL Server 11 and there is much more we could talk about it, but I only wanted to give a short introduction. You should look into column oriented storage for BI and Data Warehousing projects, where a columnstore index could speed up significantly certain type of analytic queries, specially those that use aggregate functions.
 
-On a final note you have to understand the restrictions that columnstore indexes have, these restrictions are described in detail at the MSDN <a href="http://msdn.microsoft.com/en-us/library/gg492088%28v=SQL.110%29.aspx" target="_blank">Columnstore Indexes</a> article. The most severe restriction, by far, is the fact that a table that has columnstore indexes cannot be updates, it becomes read-only. For the specific DW and BI scenarios that columnstore indexes addresses this is actually not such a hard restriction, as the ETL process can easily circumvent this problem by using staging tables and partitioning. More on this in a next article: [How to update a table with a columnstore index](http://rusanu.com/2011/07/13/how-to-update-a-table-with-a-columnstore-index/).
+On a final note you have to understand the restrictions that columnstore indexes have, these restrictions are described in detail at the MSDN <a href="http://msdn.microsoft.com/en-us/library/gg492088%28v=SQL.110%29.aspx" target="_blank">Columnstore Indexes</a> article. The most severe restriction, by far, is the fact that a table that has columnstore indexes cannot be updates, it becomes read-only. For the specific DW and BI scenarios that columnstore indexes addresses this is actually not such a hard restriction, as the ETL process can easily circumvent this problem by using staging tables and partitioning. More on this in a next article: [How to update a table with a columnstore index](/2011/07/13/how-to-update-a-table-with-a-columnstore-index/).

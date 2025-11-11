@@ -4,7 +4,7 @@ title: The puzzle of U locks in deadlock graphs
 date: 2010-05-12T14:15:12+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/?p=801
+guid: /?p=801
 permalink: /2010/05/12/the-puzzle-of-u-locks-in-deadlock-graphs/
 categories:
   - Troubleshooting
@@ -16,7 +16,7 @@ tags:
 In a <a href="http://stackoverflow.com/questions/2814377/deadlock-problem-because-of-an-update-lock/2814743#2814743" target="_blank">stackoverflow.com question</a> the user has asked how come a SELECT statement could own a U mode lock?
 
 <div id="attachment_802" style="width: 310px" class="wp-caption alignnone">
-  <a href="http://rusanu.com/wp-content/uploads/2010/05/deadlock-sux.png"><img src="http://rusanu.com/wp-content/uploads/2010/05/deadlock-sux.png" alt="S-U-X deadlock graph" title="deadlock-sux" width="300" height="62" class="size-medium wp-image-802" /></a>
+  <a href="/wp-content/uploads/2010/05/deadlock-sux.png"><img src="/wp-content/uploads/2010/05/deadlock-sux.png" alt="S-U-X deadlock graph" title="deadlock-sux" width="300" height="62" class="size-medium wp-image-802" /></a>
   
   <p class="wp-caption-text">
     S-U-X deadlock graph

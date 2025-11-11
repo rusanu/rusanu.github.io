@@ -4,7 +4,7 @@ title: Pro SQL Server 2008 Service Broker
 date: 2007-11-09T03:40:35+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/2007/11/09/pro-sql-server-2008-service-broker/
+guid: /2007/11/09/pro-sql-server-2008-service-broker/
 permalink: /2007/11/09/pro-sql-server-2008-service-broker/
 categories:
   - Announcements

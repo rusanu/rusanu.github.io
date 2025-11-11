@@ -4,7 +4,7 @@ title: Using XSLT to generate Performance Counters code
 date: 2009-04-11T00:13:18+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/?p=308
+guid: /?p=308
 permalink: /2009/04/11/using-xslt-to-generate-performance-counters-code/
 categories:
   - Samples
@@ -55,7 +55,7 @@ Create a new project in Visual Studio. Choose a C# Class Library type project an
 </p>
 
 <p>
-  <a href="http://rusanu.com/wp-content/uploads/2009/04/prebuildevent.png"><img src="http://rusanu.com/wp-content/uploads/2009/04/prebuildevent.png" alt="" title="prebuildevent" width="150" class="alignnone size-thumbnail wp-image-314" /></a>
+  <a href="/wp-content/uploads/2009/04/prebuildevent.png"><img src="/wp-content/uploads/2009/04/prebuildevent.png" alt="" title="prebuildevent" width="150" class="alignnone size-thumbnail wp-image-314" /></a>
 </p>
 
 <p>
@@ -70,7 +70,7 @@ Create a new project in Visual Studio. Choose a C# Class Library type project an
 </pre>
 
 <p>
-  <a href="http://rusanu.com/wp-content/uploads/2009/04/editproject.png"><img src="http://rusanu.com/wp-content/uploads/2009/04/editproject.png" alt="" title="editproject" width="300" height="90" class="alignnone size-medium wp-image-327" /></a>
+  <a href="/wp-content/uploads/2009/04/editproject.png"><img src="/wp-content/uploads/2009/04/editproject.png" alt="" title="editproject" width="300" height="90" class="alignnone size-medium wp-image-327" /></a>
 </p>
 
 <p>
@@ -78,7 +78,7 @@ Create a new project in Visual Studio. Choose a C# Class Library type project an
 </p>
 
 <p>
-  <a href="http://rusanu.com/wp-content/uploads/2009/04/dependentautogen.png"><img src="http://rusanu.com/wp-content/uploads/2009/04/dependentautogen.png" alt="" title="dependentautogen" width="255" height="173" class="alignnone size-medium wp-image-329" /></a>
+  <a href="/wp-content/uploads/2009/04/dependentautogen.png"><img src="/wp-content/uploads/2009/04/dependentautogen.png" alt="" title="dependentautogen" width="255" height="173" class="alignnone size-medium wp-image-329" /></a>
 </p>
 
 <p>
@@ -95,7 +95,7 @@ Create a new project in Visual Studio. Choose a C# Class Library type project an
 
 <pre>
 <span style="color: Black"></span><span style="color:Blue">&lt;?</span><span style="color:Maroon">xml</span><span style="color:Blue">&nbsp;</span><span style="color:Red">version</span><span style="color:Blue">=</span><span style="color:Black">"</span><span style="color:Blue">1.0</span><span style="color:Black">"</span><span style="color:Blue">&nbsp;</span><span style="color:Red">encoding</span><span style="color:Blue">=</span><span style="color:Black">"</span><span style="color:Blue">utf-8</span><span style="color:Black">"</span><span style="color:Blue">&nbsp;?&gt;<br />
-&lt;</span><span style="color:Maroon">manager</span><span style="color:Blue">&nbsp;</span><span style="color:Red">xmlns</span><span style="color:Blue">=</span><span style="color:Black">"</span><span style="color:Blue">http://rusanu.com/Schemas/PerformanceCounters/v1.0</span><span style="color:Black">"<br />
+&lt;</span><span style="color:Maroon">manager</span><span style="color:Blue">&nbsp;</span><span style="color:Red">xmlns</span><span style="color:Blue">=</span><span style="color:Black">"</span><span style="color:Blue">/Schemas/PerformanceCounters/v1.0</span><span style="color:Black">"<br />
 </span><span style="color:Blue">		</span><span style="color:Red">clrname</span><span style="color:Blue">=</span><span style="color:Black">"</span><span style="color:Blue">PerformanceCountersManager</span><span style="color:Black">"</span><span style="color:Blue">&nbsp;</span><span style="color:Red">namespace</span><span style="color:Blue">=</span><span style="color:Black">"</span><span style="color:Blue">PerformanceCounters</span><span style="color:Black">"</span><span style="color:Blue">&gt;<br />
 	&lt;</span><span style="color:Maroon">group</span><span style="color:Blue">&nbsp;</span><span style="color:Red">name</span><span style="color:Blue">=</span><span style="color:Black">"</span><span style="color:Blue">My&nbsp;Counters</span><span style="color:Black">"</span><span style="color:Blue">&nbsp;</span><span style="color:Red">clrname</span><span style="color:Blue">=</span><span style="color:Black">"</span><span style="color:Blue">MyCounters</span><span style="color:Black">"</span><span style="color:Blue">&nbsp;</span><span style="color:Red">type</span><span style="color:Blue">=</span><span style="color:Black">"</span><span style="color:Blue">SingleInstance</span><span style="color:Black">"</span><span style="color:Blue">&gt;<br />
 		&lt;</span><span style="color:Maroon">description</span><span style="color:Blue">&gt;</span><span style="color:Black">Demo&nbsp;Counters&nbsp;for&nbsp;XSLT&nbsp;code&nbsp;generation&nbsp;project</span><span style="color:Blue">&lt;/</span><span style="color:Maroon">description</span><span style="color:Blue">&gt;<br />
@@ -143,7 +143,7 @@ Create a new project in Visual Studio. Choose a C# Class Library type project an
 <span style="color: Black"></span><span style="color:Blue">&lt;?</span><span style="color:Maroon">xml</span><span style="color:Blue">&nbsp;</span><span style="color:Red">version</span><span style="color:Blue">=</span><span style="color:Black">"</span><span style="color:Blue">1.0</span><span style="color:Black">"</span><span style="color:Blue">&nbsp;</span><span style="color:Red">encoding</span><span style="color:Blue">=</span><span style="color:Black">"</span><span style="color:Blue">UTF-8</span><span style="color:Black">"</span><span style="color:Blue">&nbsp;?&gt;<br />
 &lt;</span><span style="color:Teal">xsl:stylesheet</span><span style="color:Blue">&nbsp;</span><span style="color:Red">version</span><span style="color:Blue">=</span><span style="color:Black">"</span><span style="color:Blue">1.0</span><span style="color:Black">"</span><span style="color:Blue">&nbsp;<br />
 	</span><span style="color:Red">xmlns:xsl</span><span style="color:Blue">=</span><span style="color:Black">"</span><span style="color:Blue">http://www.w3.org/1999/XSL/Transform</span><span style="color:Black">"<br />
-</span><span style="color:Blue">&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Red">xmlns:pc</span><span style="color:Blue">=</span><span style="color:Black">"</span><span style="color:Blue">http://rusanu.com/Schemas/PerformanceCounters/v1.0</span><span style="color:Black">"</span><span style="color:Blue">&gt;<br />
+</span><span style="color:Blue">&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color:Red">xmlns:pc</span><span style="color:Blue">=</span><span style="color:Black">"</span><span style="color:Blue">/Schemas/PerformanceCounters/v1.0</span><span style="color:Black">"</span><span style="color:Blue">&gt;<br />
 	&lt;</span><span style="color:Teal">xsl:output</span><span style="color:Blue">&nbsp;</span><span style="color:Red">method</span><span style="color:Blue">=</span><span style="color:Black">"</span><span style="color:Blue">text</span><span style="color:Black">"</span><span style="color:Blue">&nbsp;</span><span style="color:Red">encoding</span><span style="color:Blue">=</span><span style="color:Black">"</span><span style="color:Blue">utf-8</span><span style="color:Black">"</span><span style="color:Blue">/&gt;<br />
 	&lt;</span><span style="color:Teal">xsl:template</span><span style="color:Blue">&nbsp;</span><span style="color:Red">match</span><span style="color:Blue">=</span><span style="color:Black">"</span><span style="color:Blue">/</span><span style="color:Black">"</span><span style="color:Blue">&gt;<br />
 </span><span style="color:Black">/*&nbsp;This&nbsp;file&nbsp;was&nbsp;automatically&nbsp;generated&nbsp;during&nbsp;project&nbsp;build.<br />

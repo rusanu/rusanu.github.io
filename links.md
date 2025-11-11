@@ -4,7 +4,7 @@ title: Links
 date: 2010-05-15T21:17:10+00:00
 author: remus
 layout: page
-guid: http://rusanu.com/?page_id=810
+guid: /?page_id=810
 ---
 ## SQL Server Links
 

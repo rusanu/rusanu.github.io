@@ -4,7 +4,7 @@ title: 'SQL Server 2008 R2 Express database size limit: 10GB'
 date: 2010-04-28T10:11:11+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/?p=788
+guid: /?p=788
 permalink: /2010/04/28/sql-server-2008-r2-express-database-size-limit-10gb/
 categories:
   - Troubleshooting

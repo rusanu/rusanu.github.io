@@ -4,7 +4,7 @@ title: 'TRY CATCH THROW: Error handling changes in T-SQL'
 date: 2010-11-22T09:42:14+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/?p=940
+guid: /?p=940
 permalink: /2010/11/22/try-catch-throw-exception-handling-in-t-sql/
 categories:
   - Announcements
@@ -25,7 +25,7 @@ But when trying to use the new TRY/CATCH exception handling in T-SQL code, one p
 
 <!--more-->
 
-With SQL Server 11, this is not the case anymore. <a href="http://msdn.microsoft.com/en-us/library/ee677615%28v=SQL.110%29.aspx" target="_blank"><tt>THROW</tt></a> was introduced in the language to allow the exception handling to re-throw the _original_ error information. Revisiting the stored procedure template I recommended to use for proper handling of nested transactions in the presence of exception in [Exception handling and nested transactions](http://rusanu.com/2009/06/11/exception-handling-and-nested-transactions/), here is how the template would be modified for SQL Server 11 to take advantage of <tt>THROW<tt>:</p> 
+With SQL Server 11, this is not the case anymore. <a href="http://msdn.microsoft.com/en-us/library/ee677615%28v=SQL.110%29.aspx" target="_blank"><tt>THROW</tt></a> was introduced in the language to allow the exception handling to re-throw the _original_ error information. Revisiting the stored procedure template I recommended to use for proper handling of nested transactions in the presence of exception in [Exception handling and nested transactions](/2009/06/11/exception-handling-and-nested-transactions/), here is how the template would be modified for SQL Server 11 to take advantage of <tt>THROW<tt>:</p> 
 
 <pre>
 <code class="prettyprint lang-sql">

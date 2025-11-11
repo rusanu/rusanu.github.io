@@ -4,7 +4,7 @@ title: SIGMOD 2011 Webcasts
 date: 2011-06-23T21:50:16+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/?p=1181
+guid: /?p=1181
 permalink: /2011/06/23/sigmod-2011-webcasts/
 categories:
   - Announcements

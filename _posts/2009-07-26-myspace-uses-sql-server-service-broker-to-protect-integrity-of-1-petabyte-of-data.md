@@ -4,7 +4,7 @@ title: MySpace Uses SQL Server Service Broker to Protect Integrity of 1 Petabyte
 date: 2009-07-26T00:42:27+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/?p=497
+guid: /?p=497
 permalink: /2009/07/26/myspace-uses-sql-server-service-broker-to-protect-integrity-of-1-petabyte-of-data/
 categories:
   - Announcements
@@ -19,6 +19,6 @@ I just found that Microsoft has published <a href="http://www.microsoft.com/case
 
 _Service Broker has enabled MySpace to perform foreign key management across its 440 database servers, activating and deactivating accounts for its millions of users, with one-touch asynchronous efficiency. MySpace also uses Service Broker administratively to distribute new stored procedures and other updates across all 440 database servers through the Service Dispatcher infrastructure._ 
 
-That is pretty impressive. I knew about the MySpace SSB adoption since the days when I was with the Service Broker team. You probably all know my mantra I repeat all the time &#8220;don&#8217;t use [fire and forget](http://rusanu.com/2006/04/06/fire-and-forget-good-for-the-military-but-not-for-service-broker-conversations/), is a bad message exchange pattern and there are scenarios when the database may be taken offline&#8221;? Guess how I found out those &#8216;scenarios&#8217;&#8230; Anyway, I&#8217;m really glad that they also made public some performance numbers. Until now I could only quote the 5000 message per second I can push in my own test test environment. Well, looks like MySpace has some beefier hardware:
+That is pretty impressive. I knew about the MySpace SSB adoption since the days when I was with the Service Broker team. You probably all know my mantra I repeat all the time &#8220;don&#8217;t use [fire and forget](/2006/04/06/fire-and-forget-good-for-the-military-but-not-for-service-broker-conversations/), is a bad message exchange pattern and there are scenarios when the database may be taken offline&#8221;? Guess how I found out those &#8216;scenarios&#8217;&#8230; Anyway, I&#8217;m really glad that they also made public some performance numbers. Until now I could only quote the 5000 message per second I can push in my own test test environment. Well, looks like MySpace has some beefier hardware:
 
 _Stelzmuller: “When we went to the lab we brought our own workloads to ensure the quality of the testing. We needed to see if Service Broker could handle loads of 4,000 messages per second. Our testing found it could handle more than **18,000 messages a second**.&#8221;_

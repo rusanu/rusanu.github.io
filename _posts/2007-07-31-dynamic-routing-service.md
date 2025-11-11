@@ -4,7 +4,7 @@ title: Dynamic Routing Service
 date: 2007-07-31T16:45:00+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/2007/07/31/dynamic-routing-service/
+guid: /2007/07/31/dynamic-routing-service/
 permalink: /2007/07/31/dynamic-routing-service/
 categories:
   - Samples

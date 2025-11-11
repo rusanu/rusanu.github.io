@@ -1,0 +1,25 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl:*)",
+      "Bash(for f in _posts/*.md)",
+      "Bash(do grep \"^permalink:\" \"$f\")",
+      "Bash(done)",
+      "Bash(mkdir:*)",
+      "Bash(sed:*)",
+      "Bash(bundle exec jekyll build:*)",
+      "Bash(cat:*)",
+      "Bash(choco install:*)",
+      "Bash(ruby --version:*)",
+      "Bash(where:*)",
+      "Bash(bundle install:*)",
+      "Bash(ridk install:*)",
+      "Bash(gem env:*)",
+      "Bash(C:/tools/ruby34/bin/ridk.cmd install:*)",
+      "Bash(find:*)",
+      "Bash(choco search:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

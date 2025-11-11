@@ -4,7 +4,7 @@ title: How to analyse SQL Server performance
 date: 2014-02-24T07:55:50+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/?p=2144
+guid: /?p=2144
 permalink: /2014/02/24/how-to-analyse-sql-server-performance/
 categories:
   - CodeProject
@@ -44,7 +44,7 @@ To be able to troubleshoot performance problems you need to have an understandin
   * Data locking ensures correctness under concurrency.
   * When all statements in the request have executed, the thread is free to pick up another request and execute it.
 
-For a much more detailed explanation read [Understanding how SQL Server executes a query](http://rusanu.com/2013/08/01/understanding-how-sql-server-executes-a-query/).
+For a much more detailed explanation read [Understanding how SQL Server executes a query](/2013/08/01/understanding-how-sql-server-executes-a-query/).
 
 <p class="callout float-right">
   A request is either executing or is waiting
@@ -84,7 +84,7 @@ where r.session_id &gt;= 50
 and r.session_id &lt;&gt; @@spid;
 </code></pre>
 
-[<img src="http://rusanu.com/wp-content/uploads/2014/01/dm_exec_requests_wait.png" alt="" title="dm_exec_requests_wait" width="600" class="alignleft size-full wp-image-2164" />](http://rusanu.com/wp-content/uploads/2014/01/dm_exec_requests_wait.png)
+[<img src="/wp-content/uploads/2014/01/dm_exec_requests_wait.png" alt="" title="dm_exec_requests_wait" width="600" class="alignleft size-full wp-image-2164" />](/wp-content/uploads/2014/01/dm_exec_requests_wait.png)
 
   * Request on session 53 is a <tt>SELECT</tt> and is currently **waiting**. It is waiting on a lock.
   * Session 54 is an <tt>INSERT</tt> and is currently **waiting**. It is waiting on a page latch.
@@ -95,7 +95,7 @@ Note that the request for session 54 has a status of <tt>running</tt> but it is 
 
 Here is another example:
 
-[<img src="http://rusanu.com/wp-content/uploads/2014/01/dm_exec_requests_wait_2.png" alt="" title="dm_exec_requests_wait_2" width="600" class="alignleft size-full wp-image-2166" />](http://rusanu.com/wp-content/uploads/2014/01/dm_exec_requests_wait_2.png)
+[<img src="/wp-content/uploads/2014/01/dm_exec_requests_wait_2.png" alt="" title="dm_exec_requests_wait_2" width="600" class="alignleft size-full wp-image-2166" />](/wp-content/uploads/2014/01/dm_exec_requests_wait_2.png)
 
   * Request on session 53 is a <tt>COMMIT</tt> and is currently **waiting**. It is waiting for the database log to flush.
   * Session 54 is a <tt>SELECT</tt> and is currently **waiting**. It is waiting on lock.
@@ -118,7 +118,7 @@ where r.session_id &gt;= 50
 and r.session_id &lt;&gt; @@spid;
 </code></pre>
 
-[<img src="http://rusanu.com/wp-content/uploads/2014/01/dm_os_waiting_tasks.png" alt="" title="dm_os_waiting_tasks" width="600" class="alignleft size-full wp-image-2173" />](http://rusanu.com/wp-content/uploads/2014/01/dm_os_waiting_tasks.png)
+[<img src="/wp-content/uploads/2014/01/dm_os_waiting_tasks.png" alt="" title="dm_os_waiting_tasks" width="600" class="alignleft size-full wp-image-2173" />](/wp-content/uploads/2014/01/dm_os_waiting_tasks.png)
 
   * Session 53 is waiting the log to flush
   * Session 57 is waiting for 40 ms for a lock on a row and is blocked by session 53 (which therefore must be owning the lock)
@@ -150,7 +150,7 @@ where r.session_id &gt;= 50
 and r.session_id &lt;&gt; @@spid;
 </code></pre>
 
-[<img src="http://rusanu.com/wp-content/uploads/2014/01/cxpacket_wait.png" alt="" title="cxpacket_wait" width="600" class="alignleft size-full wp-image-2179" />](http://rusanu.com/wp-content/uploads/2014/01/cxpacket_wait.png)
+[<img src="/wp-content/uploads/2014/01/cxpacket_wait.png" alt="" title="cxpacket_wait" width="600" class="alignleft size-full wp-image-2179" />](/wp-content/uploads/2014/01/cxpacket_wait.png)
 
 Here we can see that request on session 54 has 3 tasks waiting, and while the request <tt>wait_type</tt> shows <tt>CXPACKET</tt>, one of the parallel child tasks is actually waiting on a page lock. 
 
@@ -164,7 +164,7 @@ from sys.dm_os_wait_stats
 order by wait_time_ms desc;
 </code></pre>
 
-[<img src="http://rusanu.com/wp-content/uploads/2014/01/dm_os_wait_stats.png" alt="" title="dm_os_wait_stats" width="600" class="alignleft size-full wp-image-2182" />](http://rusanu.com/wp-content/uploads/2014/01/dm_os_wait_stats.png)
+[<img src="/wp-content/uploads/2014/01/dm_os_wait_stats.png" alt="" title="dm_os_wait_stats" width="600" class="alignleft size-full wp-image-2182" />](/wp-content/uploads/2014/01/dm_os_wait_stats.png)
 
 First, what&#8217;s the deal with all those wait types that take the lion&#8217;s share at the top of the result? <tt>DIRTY_PAGE_POOL</tt>, <tt>REQUEST_FOR_DEADLOCK_SEARCH</tt>, <tt>LAZYWRITER_SLEEP</tt>? We did not see any request ever waiting for these! Here is why: by adding the <tt>WHERE session_id >= 50</tt> we filtered out background tasks, threads internal for SQL Server that are tasked with various maintenance jobs. Many of these background tasks follow a pattern like &#8220;wait for an event, when the event is signaled do some work, then wait again&#8221;, while other are patterned in a sleep cycle pattern (&#8220;sleep for 5 seconds, wake up and do something, go back to sleep 5 seconds&#8221;). Since no task can suspend itself without providing a wait type, there are wait types to capture when these background tasks suspend themselves. As these patterns of execution result in the task being actually suspended almost all time, the aggregated wait time for these wait types often trumps every other wait type. The SQL Server community came to name these wait types &#8216;benign wait types&#8217; and most experts have a list of wait types they simply filter out, for example see [Filtering out benign waits](http://sqlmag.com/blog/filtering-out-benign-waits):
 
@@ -188,7 +188,7 @@ WHERE [wait_type] NOT IN (
 order by wait_time_ms desc;
 </code></pre>
 
-[<img src="http://rusanu.com/wp-content/uploads/2014/01/dm_os_wait_stats_filtered.png" alt="" title="dm_os_wait_stats_filtered" width="600" class="alignleft size-full wp-image-2183" />](http://rusanu.com/wp-content/uploads/2014/01/dm_os_wait_stats_filtered.png)
+[<img src="/wp-content/uploads/2014/01/dm_os_wait_stats_filtered.png" alt="" title="dm_os_wait_stats_filtered" width="600" class="alignleft size-full wp-image-2183" />](/wp-content/uploads/2014/01/dm_os_wait_stats_filtered.png)
 
 Now we have a more coherent picture of the waits. the picture tells us what wait types are most prevalent, on aggregate, on this SQL Server instance. This can be an important step toward identifying a bottleneck cause. Furthermore, interpreting the data is data is subjective. Is the aggregate <tt>WRITELOG</tt> value of 4636805 milliseconds good or bad? I don&#8217;t know! Is an aggregate, accumulated since this process is running, so will obviously contiguously increase. Perhaps it had accumulated values from periods when the server was running smooth and from periods when it was running poorly. However, I now know that, from all &#8216;non bening&#8217; wait types, <tt>WRITELOG</tt> is the one with the highest total wait time. I also know that <tt>max_wait_time</tt> for these wait types, so I know that there was at least one time when a task had to wait 1.4 seconds for the log to flush. The <tt>wait_task_count</tt> tells me how many time a task waited on a particular wait type, and dividing <tt>wait_time_ms/wait_task_count</tt> will tell me the average time a particular wait type has been waited on. And I see several lock related wait types in top: <tt>LCK_M_S</tt>, <tt>LCK_M_IS</tt> and <tt>LCK_M_IX</tt>. I can already tell some things about the overall behavior of the server, from a performance point of view: flushing the log is most waited resource on the server, and lock contention seems to be the next major issue. <tt>CXPACKET</tt> wait types are right there on top, but we know that most times <tt>CXPACKET</tt> wait types are just surrogate for other wait types, as discussed above. How about those other with types in the list, like <tt>SOS_SCHEDULER_YIELD</tt>, <tt>PAGELATCH_EX/SH</tt> or <tt>PAGEIOLATCH_EX/SH/UP</tt>?
 
@@ -250,7 +250,7 @@ select * from sys.dm_os_spinlock_stats
 order by spins desc;
 </code></pre>
 
-[<img src="http://rusanu.com/wp-content/uploads/2014/01/dm_os_spinlock_stats.png" alt="" title="dm_os_spinlock_stats" width="600" class="alignleft size-full wp-image-2203" />](http://rusanu.com/wp-content/uploads/2014/01/dm_os_spinlock_stats.png)  
+[<img src="/wp-content/uploads/2014/01/dm_os_spinlock_stats.png" alt="" title="dm_os_spinlock_stats" width="600" class="alignleft size-full wp-image-2203" />](/wp-content/uploads/2014/01/dm_os_spinlock_stats.png)  
 For further details I recommend reading the [Diagnosing and Resolving Spinlock Contention on SQL Server](http://www.microsoft.com/en-us/download/details.aspx?id=26666) white paper.
 
 <tt><b>RESOURCE_SEMAPHORE_QUERY_COMPILE</b></tt>
@@ -284,7 +284,7 @@ join sys.master_files mf on mf.database_id = io.database_id
 order by (io.num_of_bytes_read + io.num_of_bytes_written) desc;
 </code></pre>
 
-[<img src="http://rusanu.com/wp-content/uploads/2014/01/dm_io_virtual_file_stats.png" alt="" title="dm_io_virtual_file_stats" width="600" class="alignleft size-full wp-image-2219" />](http://rusanu.com/wp-content/uploads/2014/01/dm_io_virtual_file_stats.png)
+[<img src="/wp-content/uploads/2014/01/dm_io_virtual_file_stats.png" alt="" title="dm_io_virtual_file_stats" width="600" class="alignleft size-full wp-image-2219" />](/wp-content/uploads/2014/01/dm_io_virtual_file_stats.png)
 
 The per file IO stats are aggregated since server start up but be aware that they reset for each file if it ever goes offline. The total number of bytes transferred (reads and writes) is a good indicator of how busy is a database from IO point of view. The stalls indicate which IO subsytem (which disk) is busy and may even be saturated. 
 
@@ -319,7 +319,7 @@ There is also the [<tt>SET STATISTICS PROFILE ON</tt>](http://technet.microsoft.
   Logical Reads are the best measure of a statement cost.
 </p>
 
-A large logical reads value for a statement indicates an expensive statement. For OLTP environments the number of logical reads should be in single digits. Large logical reads count translate to long execution times and high CPU consumption even under ideally conditions. Under less ideal conditions some or all of these logical reads turn into physical reads which mean long wait times waiting for disk transfer of data into the buffer pool. Large logical reads are indicative of large data scans, usually entire table end-to-end scan. They are most times caused by missing indexes. In OLAP, decision and DW environments, scans and large logical reads may be unavoidable as indexing for an OLAP workload is tricky, and indexing for an ad-hoc analytic workload is basically impossible. For these later cases the answer usually relies in using DW specific technologies like [columnstores](http://rusanu.com/2012/05/29/inside-the-sql-server-2012-columnstore-indexes/).
+A large logical reads value for a statement indicates an expensive statement. For OLTP environments the number of logical reads should be in single digits. Large logical reads count translate to long execution times and high CPU consumption even under ideally conditions. Under less ideal conditions some or all of these logical reads turn into physical reads which mean long wait times waiting for disk transfer of data into the buffer pool. Large logical reads are indicative of large data scans, usually entire table end-to-end scan. They are most times caused by missing indexes. In OLAP, decision and DW environments, scans and large logical reads may be unavoidable as indexing for an OLAP workload is tricky, and indexing for an ad-hoc analytic workload is basically impossible. For these later cases the answer usually relies in using DW specific technologies like [columnstores](/2012/05/29/inside-the-sql-server-2012-columnstore-indexes/).
 
 Information about query execution statistics can also be obtained using SQL Profiler. The [<tt>SQL:StmtCompleted</tt>](http://technet.microsoft.com/en-us/library/ms189886.aspx), [<tt>SQL:BatchCompleted</tt>](http://technet.microsoft.com/en-us/library/ms176010.aspx),[<tt>SP:StmtCompleted</tt>](http://technet.microsoft.com/en-us/library/ms189570.aspx) and [<tt>RPC:Completed</tt>](http://technet.microsoft.com/en-us/library/ms175543.aspx) capture the number of page reads, the number of page writes and the execution time of an individual invocation of a statement, a stored procedure or a SQL batch. The number of reads is logical reads. Note that monitoring with SQL Profiler for individual statement completed events will have effect on performance and on a big busy server it can cause significant performance degradation.
 
@@ -362,7 +362,7 @@ select * from x;
 go
 &lt;/pre>
 &lt;p></code><br />
-<a href="http://rusanu.com/wp-content/uploads/2014/01/session_waits_raw.png"><img src="http://rusanu.com/wp-content/uploads/2014/01/session_waits_raw.png" alt="" title="session_waits_raw" width="600" class="alignleft size-full wp-image-2228" /></a></p>
+<a href="/wp-content/uploads/2014/01/session_waits_raw.png"><img src="/wp-content/uploads/2014/01/session_waits_raw.png" alt="" title="session_waits_raw" width="600" class="alignleft size-full wp-image-2228" /></a></p>
 
 
 <p>
@@ -435,7 +435,7 @@ order by sum(duration) desc;
 
 
 <p>
-  <a href="http://rusanu.com/wp-content/uploads/2014/01/session_waits_agg.png"><img src="http://rusanu.com/wp-content/uploads/2014/01/session_waits_agg.png" alt="" title="session_waits_agg" width="695" height="177" class="alignleft size-full wp-image-2229" /></a>
+  <a href="/wp-content/uploads/2014/01/session_waits_agg.png"><img src="/wp-content/uploads/2014/01/session_waits_agg.png" alt="" title="session_waits_agg" width="695" height="177" class="alignleft size-full wp-image-2229" /></a>
 </p>
 
 
@@ -737,7 +737,7 @@ select st.text,
   
   
   <dd>
-    I can hardly think of any event in SQL Server execution that has a more dramatic impact on performance than log growth. During log growth every write request effectively freezes as it waits for available log to generate the write-ahead log records necessary to record any update. Log growth cannot use <a href="http://technet.microsoft.com/en-us/library/ms175935(v=sql.105).aspx">instant file initialization</a> so it must wait until the log file is grown and the newly allocated disk space is filled with 0s. Your application users might as well watch paint dry... Often cases this is aggravated by a log file gone out of control with 10% increments which is now growing in hundreds of megabytes or even gigabytes at a time. The impact on performance is usually devastating, and is also difficult to track down <i>after</i> the fact. It shows as a sudden performance dip (actually often a complete freeze) that lasts few seconds or even minutes, and then everything is again fast until the next log growth event. The article <a href="http://rusanu.com/2012/07/27/how-to-shrink-the-sql-server-log/">How to shrink the SQL Server log</a> offers an explanation why log growth can occur. Data and log growth can also be tracked by non-zero values for the <tt>PREEMPTIVE_OS_WRITEFILEGATHER</tt> wait info statistics.
+    I can hardly think of any event in SQL Server execution that has a more dramatic impact on performance than log growth. During log growth every write request effectively freezes as it waits for available log to generate the write-ahead log records necessary to record any update. Log growth cannot use <a href="http://technet.microsoft.com/en-us/library/ms175935(v=sql.105).aspx">instant file initialization</a> so it must wait until the log file is grown and the newly allocated disk space is filled with 0s. Your application users might as well watch paint dry... Often cases this is aggravated by a log file gone out of control with 10% increments which is now growing in hundreds of megabytes or even gigabytes at a time. The impact on performance is usually devastating, and is also difficult to track down <i>after</i> the fact. It shows as a sudden performance dip (actually often a complete freeze) that lasts few seconds or even minutes, and then everything is again fast until the next log growth event. The article <a href="/2012/07/27/how-to-shrink-the-sql-server-log/">How to shrink the SQL Server log</a> offers an explanation why log growth can occur. Data and log growth can also be tracked by non-zero values for the <tt>PREEMPTIVE_OS_WRITEFILEGATHER</tt> wait info statistics.
   </dd>
   
   
@@ -1070,7 +1070,7 @@ EXECUTE sp_user_counter1 @value;
       
       
       <p>
-        For application developers is also possible to add performance counters to the application itself. Publishing performance counters from managed (.Net) application code is trivially easy, and you can automate the somehow boring process of declaring them, see <a href="http://rusanu.com/2009/04/11/using-xslt-to-generate-performance-counters-code/">Using XSLT to generate Performance Counters code</a>.
+        For application developers is also possible to add performance counters to the application itself. Publishing performance counters from managed (.Net) application code is trivially easy, and you can automate the somehow boring process of declaring them, see <a href="/2009/04/11/using-xslt-to-generate-performance-counters-code/">Using XSLT to generate Performance Counters code</a>.
       </p>
       
       
@@ -1128,17 +1128,17 @@ EXECUTE sp_user_counter1 @value;
       
       
       <p>
-        <a href="http://rusanu.com/wp-content/uploads/2014/02/use-method.png"><img src="http://rusanu.com/wp-content/uploads/2014/02/use-method.png" alt="" title="use-method" width="517" height="602" class="alignleft size-full wp-image-2298" /></a>
+        <a href="/wp-content/uploads/2014/02/use-method.png"><img src="/wp-content/uploads/2014/02/use-method.png" alt="" title="use-method" width="517" height="602" class="alignleft size-full wp-image-2298" /></a>
       </p>
       
       
       <p>
-        When used in SQL Server context, the tricky part is to identify the resources and how to measure the utilization/saturation/errors. Some resources are obvious: disk, CPU, memory, network. Sometimes even simply starting with the USE method and measuring these hardware parameters is a good way to start a performance investigation, at the very least you'll know what hardware component is saturated, if any. But knowing how SQL Server works can reveal more detailed, internal resources that can be analyzed. In <a href="http://rusanu.com/2013/08/01/understanding-how-sql-server-executes-a-query/">Understanding how SQL Server executes a query</a> I have shown this image:
+        When used in SQL Server context, the tricky part is to identify the resources and how to measure the utilization/saturation/errors. Some resources are obvious: disk, CPU, memory, network. Sometimes even simply starting with the USE method and measuring these hardware parameters is a good way to start a performance investigation, at the very least you'll know what hardware component is saturated, if any. But knowing how SQL Server works can reveal more detailed, internal resources that can be analyzed. In <a href="/2013/08/01/understanding-how-sql-server-executes-a-query/">Understanding how SQL Server executes a query</a> I have shown this image:
       </p>
       
       
       <p>
-        <img src="http://rusanu.com/wp-content/uploads/2013/07/execution-pipeline.png" alt="" title="execution-pipeline" width="600" class="alignleft size-full wp-image-1949" />
+        <img src="/wp-content/uploads/2013/07/execution-pipeline.png" alt="" title="execution-pipeline" width="600" class="alignleft size-full wp-image-1949" />
       </p>
       
       

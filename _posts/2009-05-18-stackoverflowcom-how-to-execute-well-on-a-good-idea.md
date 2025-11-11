@@ -4,7 +4,7 @@ title: 'stackoverflow.com: how to execute well on a good idea'
 date: 2009-05-18T16:25:26+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/?p=393
+guid: /?p=393
 permalink: /2009/05/18/stackoverflowcom-how-to-execute-well-on-a-good-idea/
 categories:
   - Announcements

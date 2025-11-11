@@ -4,7 +4,7 @@ title: Is Service Broker in SQL Server 2008 compatible with the one in SQL Serve
 date: 2007-11-28T11:14:45+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/2007/11/28/is-service-broker-in-sql-server-2008-compatible-with-the-one-in-sql-server-2005/
+guid: /2007/11/28/is-service-broker-in-sql-server-2008-compatible-with-the-one-in-sql-server-2005/
 permalink: /2007/11/28/is-service-broker-in-sql-server-2008-compatible-with-the-one-in-sql-server-2005/
 categories:
   - Announcements

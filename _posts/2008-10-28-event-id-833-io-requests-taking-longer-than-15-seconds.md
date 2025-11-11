@@ -4,7 +4,7 @@ title: 'Event ID 833: I/O requests taking longer than 15 seconds'
 date: 2008-10-28T15:09:17+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/?p=195
+guid: /?p=195
 permalink: /2008/10/28/event-id-833-io-requests-taking-longer-than-15-seconds/
 categories:
   - Troubleshooting

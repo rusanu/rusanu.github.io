@@ -4,7 +4,7 @@ title: Consuming Event Notifications from CLR
 date: 2007-04-11T20:11:00+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/2007/04/11/consuming-event-notifications-from-clr/
+guid: /2007/04/11/consuming-event-notifications-from-clr/
 permalink: /2007/04/11/consuming-event-notifications-from-clr/
 categories:
   - Samples

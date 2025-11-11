@@ -4,7 +4,7 @@ title: Understanding Queue Monitors
 date: 2008-08-03T17:58:04+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/2008/08/03/understanding-queue-monitors/
+guid: /2008/08/03/understanding-queue-monitors/
 permalink: /2008/08/03/understanding-queue-monitors/
 categories:
   - Troubleshooting
@@ -23,7 +23,7 @@ In this entry I want to shed some light in the soul that drives the activation p
 A Queue Monitor is a state machine that resides in the SQL Server and decides when to launch a new instance of activated procedure into execution. The <code class="prettyprint lang-sql">&lt;span style="color: green">sys.dm_broker_queue_monitors&lt;/span></code> DMV is used to view the Queue Monitors:
 
 <div class="post-image">
-  <a href="http://rusanu.com/wp-content/uploads/2008/08/dm_broker_queue_monitors.png" target="_blank"><img src="http://rusanu.com/wp-content/uploads/2008/08/dm_broker_queue_monitors.png" alt="select * from sys.dm_broker_queue_monitors" title="Click on the image for a full size view" /></a>
+  <a href="/wp-content/uploads/2008/08/dm_broker_queue_monitors.png" target="_blank"><img src="/wp-content/uploads/2008/08/dm_broker_queue_monitors.png" alt="select * from sys.dm_broker_queue_monitors" title="Click on the image for a full size view" /></a>
 </div>
 
 This DMV is described in BOL at <a href="http://msdn.microsoft.com/en-us/library/ms177628.aspx" target="_blank">http://msdn.microsoft.com/en-us/library/ms177628.aspx</a> where the columns types and decriptions can be found.

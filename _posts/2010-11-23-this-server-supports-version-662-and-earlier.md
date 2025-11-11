@@ -4,7 +4,7 @@ title: 'This server supports version 662 and earlier&#8230;'
 date: 2010-11-23T09:58:40+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/?p=909
+guid: /?p=909
 permalink: /2010/11/23/this-server-supports-version-662-and-earlier/
 categories:
   - Announcements

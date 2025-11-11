@@ -4,7 +4,7 @@ title: Speaker at European PASS Conference 2008
 date: 2008-01-23T09:12:39+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/2008/01/23/speaker-at-european-pass-conference-2008/
+guid: /2008/01/23/speaker-at-european-pass-conference-2008/
 permalink: /2008/01/23/speaker-at-european-pass-conference-2008/
 categories:
   - Announcements

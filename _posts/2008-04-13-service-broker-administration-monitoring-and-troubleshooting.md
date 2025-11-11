@@ -4,7 +4,7 @@ title: Service Broker Administration, Monitoring and Troubleshooting
 date: 2008-04-13T19:03:16+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/2008/04/13/service-broker-administration-monitoring-and-troubleshooting/
+guid: /2008/04/13/service-broker-administration-monitoring-and-troubleshooting/
 permalink: /2008/04/13/service-broker-administration-monitoring-and-troubleshooting/
 categories:
   - Announcements

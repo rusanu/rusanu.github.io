@@ -4,7 +4,7 @@ title: How to enable and disable a queue using SMO
 date: 2013-02-06T04:22:19+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/?p=1713
+guid: /?p=1713
 permalink: /2013/02/06/how-to-enable-and-disable-a-queue-using-smo/
 categories:
   - Samples

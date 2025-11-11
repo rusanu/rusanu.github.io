@@ -4,7 +4,7 @@ title: How to determine the database version of an MDF file
 date: 2011-04-04T21:54:15+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/?p=1095
+guid: /?p=1095
 permalink: /2011/04/04/how-to-determine-the-database-version-of-an-mdf-file/
 categories:
   - Announcements

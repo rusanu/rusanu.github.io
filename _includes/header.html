@@ -1,5 +1,22 @@
 <!doctype html>
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-<title>{{ page.title }}</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% if page.title %}{{ page.title }} - {% endif %}{{ site.name }}</title>
+<meta name="description" content="{{ site.description }}">
+<link rel="stylesheet" href="{{ '/assets/css/style.css' | relative_url }}" type="text/css" media="screen" />
+<link rel="stylesheet" href="{{ '/assets/css/prettify.css' | relative_url }}" type="text/css" media="screen" />
+<link rel="alternate" type="application/rss+xml" title="{{ site.name }} RSS Feed" href="{{ '/feed.xml' | relative_url }}" />
 </head>
+<body>
+<div id="wrapper">
+<div id="header">
+<div id="logo"><a href="{{ '/' | relative_url }}" title="{{ site.name }}">{{ site.name }}</a></div>
+<ul id="pagelist">
+<li class="page_item{% if page.url == '/' or page.url == '/index.html' %} current_page_item{% endif %}"><a href="{{ '/' | relative_url }}">About</a></li>
+<li class="page_item{% if page.url == '/links/' or page.url == '/links/index.html' %} current_page_item{% endif %}"><a href="{{ '/links/' | relative_url }}">Links</a></li>
+<li class="page_item{% if page.url == '/articles/' or page.url == '/articles/index.html' %} current_page_item{% endif %}"><a href="{{ '/articles/' | relative_url }}">Articles</a></li>
+<li class="page_item{% if page.url == '/blog/' or page.url == '/blog/index.html' %} current_page_item{% endif %}"><a href="{{ '/blog/' | relative_url }}">Blog</a></li>
+</ul>
+</div>

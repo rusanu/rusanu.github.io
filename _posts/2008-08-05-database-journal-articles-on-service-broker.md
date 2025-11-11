@@ -4,7 +4,7 @@ title: Database Journal articles on Service Broker
 date: 2008-08-05T13:31:07+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/2008/08/05/database-journal-articles-on-service-broker/
+guid: /2008/08/05/database-journal-articles-on-service-broker/
 permalink: /2008/08/05/database-journal-articles-on-service-broker/
 categories:
   - Announcements

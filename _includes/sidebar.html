@@ -1,0 +1,12 @@
+<div id="sidebar">
+<div id="widgets">
+<div class="widget widget_recent_entries">
+<h2 class="widgettitle">Recent Posts</h2>
+<ul>
+{% for post in site.posts limit:5 %}
+<li><a href="{{ post.url | relative_url }}">{{ post.title }}</a></li>
+{% endfor %}
+</ul>
+</div>
+</div>
+</div>

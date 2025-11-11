@@ -4,7 +4,7 @@ title: How to Multicast messages with SQL Server Service Broker
 date: 2011-07-20T18:40:39+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/?p=1244
+guid: /?p=1244
 permalink: /2011/07/20/how-to-multicast-messages-with-sql-server-service-broker/
 categories:
   - CodeProject

@@ -4,7 +4,7 @@ title: Online non-NULL with values column add in SQL Server 2012
 date: 2011-07-13T18:56:11+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/?p=1215
+guid: /?p=1215
 permalink: /2011/07/13/online-non-null-with-values-column-add-in-sql-server-11/
 categories:
   - Announcements
@@ -148,7 +148,7 @@ select pc.* from sys.system_internals_partitions p
 	where p.object_id = object_id('test');
 </code></pre>
 
-[<img src="http://rusanu.com/wp-content/uploads/2011/07/onlineschema.png" alt="" title="onlineschema" width="400" class="aligncenter size-full wp-image-1219" />](http://rusanu.com/wp-content/uploads/2011/07/onlineschema.png)
+[<img src="/wp-content/uploads/2011/07/onlineschema.png" alt="" title="onlineschema" width="400" class="aligncenter size-full wp-image-1219" />](/wp-content/uploads/2011/07/onlineschema.png)
 
 Notice that <a href="http://msdn.microsoft.com/en-us/library/ms189600.aspx" target="_blank">sys.system_internals_partition_columns</a> now has two new columns that are SQL Server 2012 specific: <tt>has_default</tt> and <tt>default_value</tt>. The column we added to the <tt>test</tt> table (the third row in the image above) has a default with value 42. This is how SQL Server 2012 knows how to show a value for Column 3 for this record, even though is physically missing on the page. With this &#8216;magic&#8217; in place the ALTER TABLE will no longer have to update every row in the table and the operation is fast, metadata-only, no matter the number of rows in the table. This new behavior occurs automatically, no special syntax or setting is required, the engine will simply do the right thing. There is no penalty from having a missing value in a row. The &#8216;missing&#8217; value can be queried, updated, indexed, exactly as if the update during ALTER TABLE really occurred. There is no measurable performance penalty from having a default value.
 

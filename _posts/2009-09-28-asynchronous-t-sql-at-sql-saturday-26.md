@@ -4,7 +4,7 @@ title: 'Asynchronous T-SQL at SQL Saturday #26'
 date: 2009-09-28T19:06:42+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/?p=565
+guid: /?p=565
 permalink: /2009/09/28/asynchronous-t-sql-at-sql-saturday-26/
 categories:
   - Announcements

@@ -4,7 +4,7 @@ title: Call a procedure in another database from an activated procedure
 date: 2006-03-07T11:05:58+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/2006/03/07/call-a-procedure-in-another-database-from-an-activated-procedure/
+guid: /2006/03/07/call-a-procedure-in-another-database-from-an-activated-procedure/
 permalink: /2006/03/07/call-a-procedure-in-another-database-from-an-activated-procedure/
 categories:
   - Samples
@@ -18,9 +18,9 @@ tags:
   - service broker
   - signing
 ---
-In my previous post [<font face="Courier New" size="2">http://rusanu.com/2006/03/01/signing-an-activated-procedure/</font>](http://rusanu.com/2006/03/01/signing-an-activated-procedure/) <font face="Courier New" size="2">I’ve showed how to use code signing to enable a server level privilege (view server state) when running an activated stored procedure. I’ll show now how to solve a very similar issue: call a stored procedure from another database. Why this is a problem is explained in this post: </font>[<font face="Courier New" size="2">http://rusanu.com/2006/01/12/why-does-feature-not-work-under-activation/</font>](http://rusanu.com/2006/01/12/why-does-feature-not-work-under-activation/)
+In my previous post [<font face="Courier New" size="2">/2006/03/01/signing-an-activated-procedure/</font>](/2006/03/01/signing-an-activated-procedure/) <font face="Courier New" size="2">I’ve showed how to use code signing to enable a server level privilege (view server state) when running an activated stored procedure. I’ll show now how to solve a very similar issue: call a stored procedure from another database. Why this is a problem is explained in this post: </font>[<font face="Courier New" size="2">/2006/01/12/why-does-feature-not-work-under-activation/</font>](/2006/01/12/why-does-feature-not-work-under-activation/)
 
-So let’s say the ‘<span>SessionsService’ from my <a href="http://rusanu.com/2006/03/01/signing-an-activated-procedure/">previous</a> post needs some new functionality: it has to audit the requests it’s receive. An audit infrastructure already exists in the [AuditInfrastructure] database, all is needed is to call the stored procedure [audit_record_request] in that database and the request will be audited. First create this ‘audit infrastructure’, which for our example will be very simple:</p> 
+So let’s say the ‘<span>SessionsService’ from my <a href="/2006/03/01/signing-an-activated-procedure/">previous</a> post needs some new functionality: it has to audit the requests it’s receive. An audit infrastructure already exists in the [AuditInfrastructure] database, all is needed is to call the stored procedure [audit_record_request] in that database and the request will be audited. First create this ‘audit infrastructure’, which for our example will be very simple:</p> 
 
 <pre>
 <span style="color: Black"></span><span style="color:Blue">create database </span><span style="color:Black">[AuditInfrastructure]<br />
@@ -185,7 +185,7 @@ GO<br /></span>
 </p>
 
 <p class="MsoNormal" style="margin: 0in 0in 0pt">
-  The problem is, as expected, the database impersonation context, as explained <a href="http://rusanu.com/2006/01/12/why-does-feature-not-work-under-activation/">here</a>. Same as in the case of server level privileges, the easiest fix is to mark the database trustworthy:
+  The problem is, as expected, the database impersonation context, as explained <a href="/2006/01/12/why-does-feature-not-work-under-activation/">here</a>. Same as in the case of server level privileges, the easiest fix is to mark the database trustworthy:
 </p>
 
 <p class="MsoNormal" style="margin: 0in 0in 0pt">

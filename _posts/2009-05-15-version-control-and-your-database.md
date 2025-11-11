@@ -4,7 +4,7 @@ title: Version Control and your Database
 date: 2009-05-15T19:15:41+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/?p=358
+guid: /?p=358
 permalink: /2009/05/15/version-control-and-your-database/
 categories:
   - Announcements

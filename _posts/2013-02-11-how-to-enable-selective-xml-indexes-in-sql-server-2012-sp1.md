@@ -4,7 +4,7 @@ title: How to enable Selective XML indexes in SQL Server 2012 SP1
 date: 2013-02-11T02:39:37+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/?p=1716
+guid: /?p=1716
 permalink: /2013/02/11/how-to-enable-selective-xml-indexes-in-sql-server-2012-sp1/
 categories:
   - SQL 2012

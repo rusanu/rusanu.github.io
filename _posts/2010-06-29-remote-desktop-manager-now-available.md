@@ -4,7 +4,7 @@ title: Remote Desktop Manager now available
 date: 2010-06-29T22:21:55+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/?p=835
+guid: /?p=835
 permalink: /2010/06/29/remote-desktop-manager-now-available/
 categories:
   - Announcements

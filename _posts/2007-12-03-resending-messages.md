@@ -4,7 +4,7 @@ title: Resending messages
 date: 2007-12-03T20:29:15+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/2007/12/03/resending-messages/
+guid: /2007/12/03/resending-messages/
 permalink: /2007/12/03/resending-messages/
 categories:
   - CodeProject
@@ -18,7 +18,7 @@ tags:
   - tsql
   - tutorial
 ---
-<p __designer:dtid="281474976710660" style="margin: 0in 0in 0pt" class="MsoNormal">This article is a continuation of my two articles on using Service Broker as a pure data-push one-way communication channel: <a __designer:dtid="281474976710662" href="http://rusanu.com/2007/04/25/reusing-conversations/">Reusing Conversations</a> and <a __designer:dtid="281474976710663" href="http://rusanu.com/2007/05/03/recycling-conversations/">Recycling Conversations</a>. I originally did not plan for this third part, but I was more than once asked the same question: if a conversation is in error what happens to the messages that were sent but not yet delivered?</p> <p _\_designer:dtid="281474976710664">The short answer is that messages that are still pending are in the sender’s database sys.transmission\_queue system table so when an Error message is received the sender can scan this table and resend each message that is still pending. An example of such procedure is not difficult to code:</p> 
+<p __designer:dtid="281474976710660" style="margin: 0in 0in 0pt" class="MsoNormal">This article is a continuation of my two articles on using Service Broker as a pure data-push one-way communication channel: <a __designer:dtid="281474976710662" href="/2007/04/25/reusing-conversations/">Reusing Conversations</a> and <a __designer:dtid="281474976710663" href="/2007/05/03/recycling-conversations/">Recycling Conversations</a>. I originally did not plan for this third part, but I was more than once asked the same question: if a conversation is in error what happens to the messages that were sent but not yet delivered?</p> <p _\_designer:dtid="281474976710664">The short answer is that messages that are still pending are in the sender’s database sys.transmission\_queue system table so when an Error message is received the sender can scan this table and resend each message that is still pending. An example of such procedure is not difficult to code:</p> 
 
 <!--more-->
 

@@ -4,7 +4,7 @@ title: Registry bloat after SQL Server 2012 SP1 installation
 date: 2013-02-15T04:55:09+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/?p=1728
+guid: /?p=1728
 permalink: /2013/02/15/registry-bloat-after-sql-server-2012-sp1-installation/
 categories:
   - SQL 2012

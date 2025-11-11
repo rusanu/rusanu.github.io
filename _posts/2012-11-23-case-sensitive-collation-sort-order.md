@@ -4,7 +4,7 @@ title: Case Sensitive collation sort order
 date: 2012-11-23T01:15:30+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/?p=1680
+guid: /?p=1680
 permalink: /2012/11/23/case-sensitive-collation-sort-order/
 categories:
   - Tutorials
@@ -41,11 +41,11 @@ Here are two possible outputs:
 
 <div>
   <div style="display: block; float: left; margin-left:  50px;">
-    <a href="http://rusanu.com/wp-content/uploads/2012/11/Variant1.png"><img src="http://rusanu.com/wp-content/uploads/2012/11/Variant1.png" alt="" title="Variant1" width="165" height="130" class="alignleft size-full wp-image-1683" /></a>
+    <a href="/wp-content/uploads/2012/11/Variant1.png"><img src="/wp-content/uploads/2012/11/Variant1.png" alt="" title="Variant1" width="165" height="130" class="alignleft size-full wp-image-1683" /></a>
   </div>
   
   <div style="display: block; float: right; margin-right:  50px;">
-    <a href="http://rusanu.com/wp-content/uploads/2012/11/Variant2.png"><img src="http://rusanu.com/wp-content/uploads/2012/11/Variant2.png" alt="" title="Variant2" width="158" height="129" class="alignright size-full wp-image-1684" /></a>
+    <a href="/wp-content/uploads/2012/11/Variant2.png"><img src="/wp-content/uploads/2012/11/Variant2.png" alt="" title="Variant2" width="158" height="129" class="alignright size-full wp-image-1684" /></a>
   </div>
   
   <p>
@@ -56,7 +56,7 @@ Here are two possible outputs:
     </p>
     
     <p>
-      <a href="http://rusanu.com/wp-content/uploads/2012/11/Variant3.png"><img src="http://rusanu.com/wp-content/uploads/2012/11/Variant3.png" alt="" title="Variant3" width="158" height="129" class="alignleft size-full wp-image-1690" /></a>
+      <a href="/wp-content/uploads/2012/11/Variant3.png"><img src="/wp-content/uploads/2012/11/Variant3.png" alt="" title="Variant3" width="158" height="129" class="alignleft size-full wp-image-1690" /></a>
     </p>
     
     <p class="callout float-right">
@@ -91,7 +91,7 @@ order by [col];
 </code></pre>
     
     <p>
-      <a href="http://rusanu.com/wp-content/uploads/2012/11/Variant2.png"><img src="http://rusanu.com/wp-content/uploads/2012/11/Variant2.png" alt="" title="Variant2" width="158" height="129" class="alignright size-full wp-image-1684" /></a>
+      <a href="/wp-content/uploads/2012/11/Variant2.png"><img src="/wp-content/uploads/2012/11/Variant2.png" alt="" title="Variant2" width="158" height="129" class="alignright size-full wp-image-1684" /></a>
     </p>
     
     <p>

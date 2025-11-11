@@ -4,7 +4,7 @@ title: Handling exceptions that occur during the RECEIVE statement in activated 
 date: 2012-10-15T04:43:18+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/?p=1657
+guid: /?p=1657
 permalink: /2012/10/15/handling-exceptions-that-occur-during-the-receive-statement-in-activated-procedures/
 categories:
   - Tutorials
@@ -160,7 +160,7 @@ go
 
 ## Why loop in the first place?
 
-The idea of the loop inside the activated stored procedure is that once activated, a procedure should <tt>RECEIVE</tt> until it drains the message queue and only then exit. But here is the deal: the [Queue Monitor](http://rusanu.com/2008/08/03/understanding-queue-monitors/) that launched the activated procedure already loops for you! It will keep calling the activated procedure until the procedure issues a <tt>RECEIVE</tt> statement that returns no rows. So you can get rid of the <tt>WHILE (1=1)</tt> loop, which simplifies the procedure and make sit more robust. If we do so, we no longer need to distinguish between errors that occurred in the <tt>RECEIVE</tt> statement vs. errors that occur in the message processing:
+The idea of the loop inside the activated stored procedure is that once activated, a procedure should <tt>RECEIVE</tt> until it drains the message queue and only then exit. But here is the deal: the [Queue Monitor](/2008/08/03/understanding-queue-monitors/) that launched the activated procedure already loops for you! It will keep calling the activated procedure until the procedure issues a <tt>RECEIVE</tt> statement that returns no rows. So you can get rid of the <tt>WHILE (1=1)</tt> loop, which simplifies the procedure and make sit more robust. If we do so, we no longer need to distinguish between errors that occurred in the <tt>RECEIVE</tt> statement vs. errors that occur in the message processing:
 
 
 <code class="prettyprint lang-sql linenums">
@@ -212,4 +212,4 @@ Notice there is no longer need for <tt>@@ROWCOUNT</tt> check, that is implicit i
 
 # Deploying blog samples in production
 
-Over time I learned that a lot of times readers deploy in production the code samples straight from the blogs they read. You have to keep in mind that a blog example is written first and foremost to illustrate the point of the blog post and not to handle a real life production environment. In my production code there must be error handling, exception logging, performance measurement instrumentation in place (with run-time knobs to enable or disable the instrumentation, or to dial the level of detail up or down) and so on and so forth. Also in a real production case I would try to leverage batch processing of messages as described in [Writing Service Broker Procedures](http://rusanu.com/2006/10/16/writing-service-broker-procedures/). When processing batch messages using a cursor the individual message processing is an excellent candidate for using a transaction savepoint, in the manner described in [Exception Handling and Nested Transactions](http://rusanu.com/2009/06/11/exception-handling-and-nested-transactions/). Use your judgement and remember that this code here is a sample, only provided to guide you in the right direction.
+Over time I learned that a lot of times readers deploy in production the code samples straight from the blogs they read. You have to keep in mind that a blog example is written first and foremost to illustrate the point of the blog post and not to handle a real life production environment. In my production code there must be error handling, exception logging, performance measurement instrumentation in place (with run-time knobs to enable or disable the instrumentation, or to dial the level of detail up or down) and so on and so forth. Also in a real production case I would try to leverage batch processing of messages as described in [Writing Service Broker Procedures](/2006/10/16/writing-service-broker-procedures/). When processing batch messages using a cursor the individual message processing is an excellent candidate for using a transaction savepoint, in the manner described in [Exception Handling and Nested Transactions](/2009/06/11/exception-handling-and-nested-transactions/). Use your judgement and remember that this code here is a sample, only provided to guide you in the right direction.

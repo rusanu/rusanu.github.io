@@ -4,7 +4,7 @@ title: SQL Server 2014 updateable columnstores Q and A
 date: 2014-06-17T05:26:24+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/?p=2390
+guid: /?p=2390
 permalink: /2014/06/17/sql-server-2014-updateable-columnstores-q-and-a/
 categories:
   - Columnstore

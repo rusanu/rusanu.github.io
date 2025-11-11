@@ -4,7 +4,7 @@ title: Using tables as Queues
 date: 2010-03-26T12:02:49+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/?p=682
+guid: /?p=682
 permalink: /2010/03/26/using-tables-as-queues/
 categories:
   - CodeProject
@@ -104,7 +104,7 @@ Because the query is actually an DELETE of a CTE, the query execution will occur
 Is also worth looking at how a compact plan the usp_dequeueFifo has:
 
 <div id="attachment_699" style="width: 310px" class="wp-caption alignnone">
-  <a href="http://rusanu.com/wp-content/uploads/2010/03/fifoqueueplan.png"><img src="http://rusanu.com/wp-content/uploads/2010/03/fifoqueueplan.png" alt="usp_dequeueFifo execution plan" title="fifoqueueplan" width="300" height="60" class="size-medium wp-image-699" /></a>
+  <a href="/wp-content/uploads/2010/03/fifoqueueplan.png"><img src="/wp-content/uploads/2010/03/fifoqueueplan.png" alt="usp_dequeueFifo execution plan" title="fifoqueueplan" width="300" height="60" class="size-medium wp-image-699" /></a>
   
   <p class="wp-caption-text">
     usp_dequeueFifo execution plan
@@ -114,7 +114,7 @@ Is also worth looking at how a compact plan the usp_dequeueFifo has:
 Compare this with the alternative of using a subquery to locate the row to be deleted:
 
 <div id="attachment_701" style="width: 310px" class="wp-caption alignnone">
-  <a href="http://rusanu.com/wp-content/uploads/2010/03/subqueryplan.png"><img src="http://rusanu.com/wp-content/uploads/2010/03/subqueryplan.png" alt="Subquery deque plan" title="subqueryplan" width="300" height="71" class="size-medium wp-image-701" /></a>
+  <a href="/wp-content/uploads/2010/03/subqueryplan.png"><img src="/wp-content/uploads/2010/03/subqueryplan.png" alt="Subquery deque plan" title="subqueryplan" width="300" height="71" class="size-medium wp-image-701" /></a>
   
   <p class="wp-caption-text">
     Subquery deque plan
@@ -202,6 +202,6 @@ SQL Server has Queues, right? After all, what else are statements like CREATE QU
 
   * Difficulty to enqueue. With Service Broker Queues you need to begin a conversation and send a message on it in order to enqueue something into a queue. What is a conversation you ask? My point exactly: the semantics exposed by Service Broker are those needed for it's purpose, namely reliable messaging. You do not need to learn about services, contracts, message types, routes and remote service bindings _just to enqueue a row into a queue_.
   * Fixed structure. Service Broker Queues have a specific table structure that cannot be altered in any fashion. You cannot add, alter or drop columns, you cannot change the indexes, you cannot change the clustered index. The Service Broker queues schema is designed for the RECEIVE verb and for the <a href="http://msdn.microsoft.com/en-us/library/ms171615.aspx" target="_blank">conversation group locking</a> semantics of Service Broker, but that schema may not be what is optimal for your case.
-  * Lack of maintenance options. I blogged about this issue in my article [Dealing with Large Queues](http://rusanu.com/2010/03/09/dealing-with-large-queues/). With Service Broker Queues you cannot use any of the table maintenance DDL, like rebuilding or reorganizing an index, you cannot use DMVs like <a href="http://msdn.microsoft.com/en-us/library/ms188917.aspx" target="_blank">sys.dm_db_index_physical_stats</a> nor can you change the various table options via <a href="http://msdn.microsoft.com/en-us/library/ms173530.aspx" target="_blank">sp_tableoptions</a>.
+  * Lack of maintenance options. I blogged about this issue in my article [Dealing with Large Queues](/2010/03/09/dealing-with-large-queues/). With Service Broker Queues you cannot use any of the table maintenance DDL, like rebuilding or reorganizing an index, you cannot use DMVs like <a href="http://msdn.microsoft.com/en-us/library/ms188917.aspx" target="_blank">sys.dm_db_index_physical_stats</a> nor can you change the various table options via <a href="http://msdn.microsoft.com/en-us/library/ms173530.aspx" target="_blank">sp_tableoptions</a>.
 
 However Service Broker has one ace up its selves: **<a href="http://msdn.microsoft.com/en-us/library/ms171617.aspx" target="_blank">Activation</a>**. Queue processing is often associated with event driven programming and the possibility to launch a procedure to handle incoming rows as they are enqueued in is always required with queues. Triggers don't work as processing has to occur after the enqueue is committed. And scheduled SQL Agent jobs don't adapt to the variable rates and spikes queue experience: if they are too aggressive they'll burn CPU, but if they are too passive the latency increases even under no load. Is hard enough to tune it for a sweet spot under a constant load, but add a variable load with spikes and the task becomes impossible. Unfortunately there is no substitute for Activation, you have to handle the processing as a separate tasks that polls the queue for new rows. The only way to leverage activation, with it's sweet mix of non-polling and self load balancing, is to use Service Broker Queues.

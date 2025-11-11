@@ -4,7 +4,7 @@ title: SQL Server table columns under the hood
 date: 2011-10-20T15:36:52+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/?p=1301
+guid: /?p=1301
 permalink: /2011/10/20/sql-server-table-columns-under-the-hood/
 categories:
   - CodeProject
@@ -68,7 +68,7 @@ create table users (
 
 Running our query after, of course, we specify <tt>object_id('users')</tt>:
 
-[<img src="http://rusanu.com/wp-content/uploads/2011/09/physical-table-1.png" alt="" title="physical-table-1" width="600" class="aligncenter size-full wp-image-1304" />](http://rusanu.com/wp-content/uploads/2011/09/physical-table-1.png)
+[<img src="/wp-content/uploads/2011/09/physical-table-1.png" alt="" title="physical-table-1" width="600" class="aligncenter size-full wp-image-1304" />](/wp-content/uploads/2011/09/physical-table-1.png)
 
 We can see that the physical structure is very much as we expected: the physical rowset has 4 physical columns, of the expected types and sizes. One thing to notice is that, although the column order is the one we specified, the columns are layout on disk in a different order: the <tt>user_id</tt> is stored in row at offset 4, followed by the <tt>birth_date</tt> at offset 8 and then by the two variable length columns (<tt>first_name</tt> and <tt>last_name</tt>) that have negative offsets, an indication that they reside in the variable size portion of the row. This should be of no surprise as we know that the row format places all fixed length columns first in the row, ahead of the variable length columns.
 
@@ -80,7 +80,7 @@ Our table right now is a heap, we should make <tt>user_id</tt> a primary key, an
 alter table users add constraint pk_users_user_id primary key (user_id);
 </code></pre>
 
-[<img src="http://rusanu.com/wp-content/uploads/2011/09/physical-table-pk.png" alt="" title="physical-table-pk" width="600" class="aligncenter size-full wp-image-1309" />](http://rusanu.com/wp-content/uploads/2011/09/physical-table-pk.png)
+[<img src="/wp-content/uploads/2011/09/physical-table-pk.png" alt="" title="physical-table-pk" width="600" class="aligncenter size-full wp-image-1309" />](/wp-content/uploads/2011/09/physical-table-pk.png)
 
 As we can see, the table has changed from a heap into a clustered index (index_id changed from 0 to 1) and the <tt>user_id</tt> column has become part of the key.
 
@@ -95,7 +95,7 @@ alter table users add constraint
 	pk_users_user_id primary key nonclustered  (user_id);
 </code></pre>
 
-[<img src="http://rusanu.com/wp-content/uploads/2011/09/physical-table-cdx.png" alt="" title="physical-table-cdx" width="600" class="aligncenter size-full wp-image-1310" />](http://rusanu.com/wp-content/uploads/2011/09/physical-table-cdx.png)
+[<img src="/wp-content/uploads/2011/09/physical-table-cdx.png" alt="" title="physical-table-cdx" width="600" class="aligncenter size-full wp-image-1310" />](/wp-content/uploads/2011/09/physical-table-cdx.png)
 
 Several changes right there:
 
@@ -115,7 +115,7 @@ Several changes right there:
 alter index pk_users_user_id on users rebuild with (online=on);
 </code></pre>
     
-    [<img src="http://rusanu.com/wp-content/uploads/2011/09/physical-table-anti-matter.png" alt="" title="physical-table-anti-matter" width="600" class="aligncenter size-full wp-image-1317" />](http://rusanu.com/wp-content/uploads/2011/09/physical-table-anti-matter.png)
+    [<img src="/wp-content/uploads/2011/09/physical-table-anti-matter.png" alt="" title="physical-table-anti-matter" width="600" class="aligncenter size-full wp-image-1317" />](/wp-content/uploads/2011/09/physical-table-anti-matter.png)
     
     Notice how the non-clustered index now has one more column, a new column that has the <tt>is_antimatter</tt> value 1. As you probably guess, this is an anti-matter column. For an in-depth explanation of what is the purpose of the anti-matter column I recommend reading [Online Indexing Operations in SQL Server 2005](http://msdn.microsoft.com/en-us/library/cc966402.aspx):
     
@@ -129,7 +129,7 @@ alter index pk_users_user_id on users rebuild with (online=on);
 alter table users ENABLE CHANGE_TRACKING;
 </code></pre>
     
-    [<img src="http://rusanu.com/wp-content/uploads/2011/09/physical-table-xdes.png" alt="" title="physical-table-xdes" width="600" class="aligncenter size-full wp-image-1322" />](http://rusanu.com/wp-content/uploads/2011/09/physical-table-xdes.png)
+    [<img src="/wp-content/uploads/2011/09/physical-table-xdes.png" alt="" title="physical-table-xdes" width="600" class="aligncenter size-full wp-image-1322" />](/wp-content/uploads/2011/09/physical-table-xdes.png)
     
     Enabling change tracking on our table has added one more hidden column.
     
@@ -146,7 +146,7 @@ create table users  (
 go
 </code></pre>
     
-    [<img src="http://rusanu.com/wp-content/uploads/2011/10/physical-table-fixed.png" alt="" title="physical-table-fixed" width="600" class="aligncenter size-full wp-image-1329" />](http://rusanu.com/wp-content/uploads/2011/10/physical-table-fixed.png)
+    [<img src="/wp-content/uploads/2011/10/physical-table-fixed.png" alt="" title="physical-table-fixed" width="600" class="aligncenter size-full wp-image-1329" />](/wp-content/uploads/2011/10/physical-table-fixed.png)
     
     Next lets modify some columns: we want to make the birth\_date not nullable and reduce the length of the first\_name to 75:
     
@@ -156,7 +156,7 @@ alter table users alter column first_name char(75);
 go
 </code></pre>
     
-    [<img src="http://rusanu.com/wp-content/uploads/2011/10/physical-table-fixed-2.png" alt="" title="physical-table-fixed-2" width="600" class="aligncenter size-full wp-image-1330" />](http://rusanu.com/wp-content/uploads/2011/10/physical-table-fixed-2.png)
+    [<img src="/wp-content/uploads/2011/10/physical-table-fixed-2.png" alt="" title="physical-table-fixed-2" width="600" class="aligncenter size-full wp-image-1330" />](/wp-content/uploads/2011/10/physical-table-fixed-2.png)
     
     Notice how the two alter operations ended up in adding a new column each, and dropping the old column. But also note how the null bit and the leaf_offset values have stayed _the same_. This means that the column was added &#8216;in place&#8217;, replacing the dropped column. This is a metadata only operation that did not modify any record in the table, it simply changed how the data in the existing records is interpreted.
     
@@ -168,7 +168,7 @@ alter table users alter column first_name char(100);
 go
 </code></pre>
     
-    [<img src="http://rusanu.com/wp-content/uploads/2011/10/physical-table-fixed-3.png" alt="" title="physical-table-fixed-3" width="600" class="aligncenter size-full wp-image-1334" />](http://rusanu.com/wp-content/uploads/2011/10/physical-table-fixed-3.png)
+    [<img src="/wp-content/uploads/2011/10/physical-table-fixed-3.png" alt="" title="physical-table-fixed-3" width="600" class="aligncenter size-full wp-image-1334" />](/wp-content/uploads/2011/10/physical-table-fixed-3.png)
     
     The birth\_date column has changed type and now it requires only 3 bytes, but the change occurred in-place, just as the nullability change we did before: it remains at the same offset in the record and it has the same null bit. However, the first\_name column was moved from offset 8 to offset 211, and the null bit was changed from 4 to 5. Because the first_name column has _increased_ in size it cannot occupy the same space as before in the record and the record has effectively increased to accommodate the _new_ first\_name column. This happened despite the fact that the first\_name column was originally of size 100 so in theory it could reclaim the old space it used in the record, but the is simply a too corner case for the storage engine to consider.
     
@@ -180,7 +180,7 @@ alter table users alter column last_name varchar(100);
 go
 </code></pre>
     
-    [<img src="http://rusanu.com/wp-content/uploads/2011/10/physical-table-fixed-4.png" alt="" title="physical-table-fixed-4" width="600" class="aligncenter size-full wp-image-1337" />](http://rusanu.com/wp-content/uploads/2011/10/physical-table-fixed-4.png)
+    [<img src="/wp-content/uploads/2011/10/physical-table-fixed-4.png" alt="" title="physical-table-fixed-4" width="600" class="aligncenter size-full wp-image-1337" />](/wp-content/uploads/2011/10/physical-table-fixed-4.png)
     
     The type change from fixed length column to variable length column cannot be done in-place, so the first\_name and last\_name columns get new null bit values.They also have negative leaf_offset values, which is typical for variable length columns as they don&#8217;t occupy fixed positions in the record.
     
@@ -192,7 +192,7 @@ alter table users alter column last_name varchar(250);
 go
 </code></pre>
     
-    [<img src="http://rusanu.com/wp-content/uploads/2011/10/physical-table-fixed-5.png" alt="" title="physical-table-fixed-5" width="600" class="aligncenter size-full wp-image-1339" />](http://rusanu.com/wp-content/uploads/2011/10/physical-table-fixed-5.png)
+    [<img src="/wp-content/uploads/2011/10/physical-table-fixed-5.png" alt="" title="physical-table-fixed-5" width="600" class="aligncenter size-full wp-image-1339" />](/wp-content/uploads/2011/10/physical-table-fixed-5.png)
     
     For this change the column length was modified _without_ dropping the column and adding a new one. An increase of size for a variable length columns is one of the operations that is really _altering_ the physical column, not dropping the column and adding a new one to replace it. However, a decrease in size, or a nullability change, does again drop and add the column, as we can quickly check now:
     
@@ -202,7 +202,7 @@ alter table users alter column last_name varchar(250) not null;
 go
 </code></pre>
     
-    [<img src="http://rusanu.com/wp-content/uploads/2011/10/physical-table-fixed-6.png" alt="" title="physical-table-fixed-6" width="600" class="aligncenter size-full wp-image-1340" />](http://rusanu.com/wp-content/uploads/2011/10/physical-table-fixed-6.png)
+    [<img src="/wp-content/uploads/2011/10/physical-table-fixed-6.png" alt="" title="physical-table-fixed-6" width="600" class="aligncenter size-full wp-image-1340" />](/wp-content/uploads/2011/10/physical-table-fixed-6.png)
     
     Finally, lets say we tried to add two more fixed length columns, but we we undecided on the name and length so we added a couple of columns, then deleted them and added again a new one:
     
@@ -215,7 +215,7 @@ alter table users drop column surname;
 alter table users add middle_name char(100);
 go</code></pre>
     
-    [<img src="http://rusanu.com/wp-content/uploads/2011/10/physical-table-fixed-8.png" alt="" title="physical-table-fixed-8" width="600" class="aligncenter size-full wp-image-1346" />](http://rusanu.com/wp-content/uploads/2011/10/physical-table-fixed-8.png)
+    [<img src="/wp-content/uploads/2011/10/physical-table-fixed-8.png" alt="" title="physical-table-fixed-8" width="600" class="aligncenter size-full wp-image-1346" />](/wp-content/uploads/2011/10/physical-table-fixed-8.png)
     
     This case is interesting because it shows how adding a new fixed column _can_ reuse the space left in the row by dropped fixed columns, but only if the dropped columns are the last fixed columns. In our table the columns <tt>mid_name</tt> and <tt>surname</tt> where originally added at offset 211 and 261 respectively and their length added up to 75 bytes. After we dropped them, the <tt>middle_name</tt> column we added is placed at offset 211, thus reusing the space formerly occupied by the dropped columns. This happens even though the length of the newly added column is 100 bytes, bigger than the 75 bytes occupied by the dropped columns before.
     
@@ -226,7 +226,7 @@ alter table users rebuild;
 go
 </code></pre>
     
-    [<img src="http://rusanu.com/wp-content/uploads/2011/10/physical-table-fixed-7.png" alt="" title="physical-table-fixed-7" width="600" class="aligncenter size-full wp-image-1341" />](http://rusanu.com/wp-content/uploads/2011/10/physical-table-fixed-7.png)
+    [<img src="/wp-content/uploads/2011/10/physical-table-fixed-7.png" alt="" title="physical-table-fixed-7" width="600" class="aligncenter size-full wp-image-1341" />](/wp-content/uploads/2011/10/physical-table-fixed-7.png)
     
     As you can see the rebuild operation got rid off the dropped columns and now the physical storage layout is compact, aligned with the logical layout. So whenever doing changes to a table structure remember that at the storage layer most changes are cumulative, they are most times implemented by dropping a column and adding a new column back, with the new type/length/nullability. Whenever possible the a modified column reuses the space in the record and newly added columns may reuse space previously used by dropped columns.
     
@@ -250,7 +250,7 @@ create table sales (
 go
 </code></pre>
     
-    [<img src="http://rusanu.com/wp-content/uploads/2011/10/physical-table-partitioned-1.png" alt="" title="physical-table-partitioned-1" width="600" class="aligncenter size-full wp-image-1350" />](http://rusanu.com/wp-content/uploads/2011/10/physical-table-partitioned-1.png)
+    [<img src="/wp-content/uploads/2011/10/physical-table-partitioned-1.png" alt="" title="physical-table-partitioned-1" width="600" class="aligncenter size-full wp-image-1350" />](/wp-content/uploads/2011/10/physical-table-partitioned-1.png)
     
     As we know, the partitioned tables are, from a physical point of view, a collection of rowsets that belong to the same logical object (the &#8216;table&#8217;). Looking under the hood shows that our table has two rowsets, and they have identical column structure. Typically new partitions are added by the ETL process that uploads data into a staging table that gets switched in using a fast partition switch operation:
     
@@ -287,7 +287,7 @@ alter table sales_staging switch to sales partition $PARTITION.PF('20111002');
 go
 </code></pre>
     
-    [<img src="http://rusanu.com/wp-content/uploads/2011/10/physical-table-partitioned-2.png" alt="" title="physical-table-partitioned-2" width="600" class="aligncenter size-full wp-image-1354" />](http://rusanu.com/wp-content/uploads/2011/10/physical-table-partitioned-2.png)
+    [<img src="/wp-content/uploads/2011/10/physical-table-partitioned-2.png" alt="" title="physical-table-partitioned-2" width="600" class="aligncenter size-full wp-image-1354" />](/wp-content/uploads/2011/10/physical-table-partitioned-2.png)
     
     We see that the partition switch operation has switched in the rowset of the staging table into the second partition of the <tt>sales</tt> table. But since the staging table had an operation that modified a column type, which in effect has dropped the numeric price columns and added a new price column of the appropriate money type, the second rowset of the partitioned table now has 5 columns, including a dropped one. The partition switch operation brings into the partitioned table the staging table _as is_, dropped columns and all. What that means is that partitions of the partitioned table can have, under the hood, a completely different physical structure from one another. Normally this should be of little concern and just a courisity to woe the newbies at DBA cocktail parties, but this problem has a darker side, known as [KB2504090](http://support.microsoft.com/kb/2504090):
     
@@ -307,7 +307,7 @@ group by index_id, partition_number;
 go
 </code></pre>
     
-    [<img src="http://rusanu.com/wp-content/uploads/2011/10/physical-table-partitioned-3.png" alt="" title="physical-table-partitioned-3" width="282" height="110" class="aligncenter size-full wp-image-1377" />](http://rusanu.com/wp-content/uploads/2011/10/physical-table-partitioned-3.png)
+    [<img src="/wp-content/uploads/2011/10/physical-table-partitioned-3.png" alt="" title="physical-table-partitioned-3" width="282" height="110" class="aligncenter size-full wp-image-1377" />](/wp-content/uploads/2011/10/physical-table-partitioned-3.png)
     
     This query shows that partitions 1 and 3 have 4 physical columns, while partition 2 has 5. We can rebuild partition 2:
     

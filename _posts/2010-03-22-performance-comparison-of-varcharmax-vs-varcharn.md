@@ -4,7 +4,7 @@ title: Performance comparison of varchar(max) vs. varchar(N)
 date: 2010-03-22T21:03:16+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/?p=724
+guid: /?p=724
 permalink: /2010/03/22/performance-comparison-of-varcharmax-vs-varcharn/
 categories:
   - CodeProject

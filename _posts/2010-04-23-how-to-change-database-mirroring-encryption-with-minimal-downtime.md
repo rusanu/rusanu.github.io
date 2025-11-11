@@ -4,7 +4,7 @@ title: How to change database mirroring encryption with minimal downtime
 date: 2010-04-23T12:33:13+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/?p=764
+guid: /?p=764
 permalink: /2010/04/23/how-to-change-database-mirroring-encryption-with-minimal-downtime/
 categories:
   - CodeProject

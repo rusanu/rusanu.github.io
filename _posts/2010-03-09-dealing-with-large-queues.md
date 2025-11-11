@@ -4,7 +4,7 @@ title: Dealing with Large Queues
 date: 2010-03-09T01:10:47+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/?p=652
+guid: /?p=652
 permalink: /2010/03/09/dealing-with-large-queues/
 categories:
   - Tutorials
@@ -68,9 +68,9 @@ The problem with Service Broker queues is that they are not normal data tables: 
 
 ## Crossing the Threshold
 
-In my project we had an incident that causes a massive queue growth, to about 19 million messages. We expected the system to start draining as it usually did before, but it never did. It kept growing at a rate about 3 million a day, indicating that the processing could not keep up with the incoming rate of 200 msgs/sec. The processing was running as fast as possible, on a highly optimized procedure using the fastest set oriented message processing, similar to what I recommend in [Writing Service Broker Procedures](http://rusanu.com/2006/10/16/writing-service-broker-procedures/). After trying to speed up the IO system, moving the drives to fastest LUNs available in the attached SAN, the system could still no keep up. The disk metrics showed a _lot_ of read requests of 8192. bytes. On a SQL Server disk a large number of read requests of 8k size are a tell-tale of fragmentation: no multi-page read-ahead occurs, indicating that the average contiguous fragment length is 1 page. Under normal circumstances one would check <a href="http://msdn.microsoft.com/en-us/library/ms188917.aspx" target="_blank">sys.dm_db_index_physical_stats for fragmentation</a> but there is a small gotcha: this DMV does _not_ show stats for queues!
+In my project we had an incident that causes a massive queue growth, to about 19 million messages. We expected the system to start draining as it usually did before, but it never did. It kept growing at a rate about 3 million a day, indicating that the processing could not keep up with the incoming rate of 200 msgs/sec. The processing was running as fast as possible, on a highly optimized procedure using the fastest set oriented message processing, similar to what I recommend in [Writing Service Broker Procedures](/2006/10/16/writing-service-broker-procedures/). After trying to speed up the IO system, moving the drives to fastest LUNs available in the attached SAN, the system could still no keep up. The disk metrics showed a _lot_ of read requests of 8192. bytes. On a SQL Server disk a large number of read requests of 8k size are a tell-tale of fragmentation: no multi-page read-ahead occurs, indicating that the average contiguous fragment length is 1 page. Under normal circumstances one would check <a href="http://msdn.microsoft.com/en-us/library/ms188917.aspx" target="_blank">sys.dm_db_index_physical_stats for fragmentation</a> but there is a small gotcha: this DMV does _not_ show stats for queues!
 
-A second observation occurred sometimes later: even after the queue drained, the allocated space was not reclaimed by the ghost cleanup. In fact I&#8217;ve seen a queue having 0 rows, but over 1 million pages allocated. The <a href="http://msdn.microsoft.com/en-us/library/ms177426.aspx" target="_blank">Skipped Ghosted Records/sec</a> performance counter was showing over 200000 ghosted records skipped per second. It seems that the Ghost Cleanup was just unable to keep up with the nearly 200Gb size _empty_ queue. Even running [DBCC FORCEGHOSTCLEANUP](http://rusanu.com/2010/02/22/dbcccommand-enumeration/) could not improve the situation.
+A second observation occurred sometimes later: even after the queue drained, the allocated space was not reclaimed by the ghost cleanup. In fact I&#8217;ve seen a queue having 0 rows, but over 1 million pages allocated. The <a href="http://msdn.microsoft.com/en-us/library/ms177426.aspx" target="_blank">Skipped Ghosted Records/sec</a> performance counter was showing over 200000 ghosted records skipped per second. It seems that the Ghost Cleanup was just unable to keep up with the nearly 200Gb size _empty_ queue. Even running [DBCC FORCEGHOSTCLEANUP](/2010/02/22/dbcccommand-enumeration/) could not improve the situation.
 
 ### Queue Maintenance
 

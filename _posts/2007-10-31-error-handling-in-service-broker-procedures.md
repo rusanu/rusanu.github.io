@@ -4,7 +4,7 @@ title: Error Handling in Service Broker procedures
 date: 2007-10-31T18:13:30+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/2007/10/31/error-handling-in-service-broker-procedures/
+guid: /2007/10/31/error-handling-in-service-broker-procedures/
 permalink: /2007/10/31/error-handling-in-service-broker-procedures/
 categories:
   - Tutorials

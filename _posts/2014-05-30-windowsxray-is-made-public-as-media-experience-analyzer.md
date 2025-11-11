@@ -4,7 +4,7 @@ title: WindowsXRay is made public as Media eXperience Analyzer
 date: 2014-05-30T04:34:13+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/?p=2383
+guid: /?p=2383
 permalink: /2014/05/30/windowsxray-is-made-public-as-media-experience-analyzer/
 categories:
   - Announcements

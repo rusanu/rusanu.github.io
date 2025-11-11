@@ -4,7 +4,7 @@ title: Understanding SQL Server Query Store
 date: 2016-04-01T01:30:01+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/?p=2435
+guid: /?p=2435
 permalink: /2016/04/01/understanding-sql-server-query-store/
 categories:
   - Performance
@@ -37,7 +37,7 @@ Once Query Store is enabled all statements that execute in the context of that d
 
 The information captured by Query Store is exposed in a series of new catalog views:
 
-[<img src="http://rusanu.com/wp-content/uploads/2015/08/QDS-ER.png" alt="QDS-ER" width="600" class="aligncenter size-full wp-image-2447" />](http://rusanu.com/wp-content/uploads/2015/08/QDS-ER.png)
+[<img src="/wp-content/uploads/2015/08/QDS-ER.png" alt="QDS-ER" width="600" class="aligncenter size-full wp-image-2447" />](/wp-content/uploads/2015/08/QDS-ER.png)
 
 [<tt>sys.query_store_query_text</tt>](https://msdn.microsoft.com/en-us/library/dn818159.aspx)
 :   This view exposes the individual statements (queries) captured by Query Store. The text is captured exactly as sent to execution, including comments _inside_ the statement. Each query text captured by Query Store will appear once in this view.
@@ -59,9 +59,9 @@ The information captured by Query Store is exposed in a series of new catalog vi
 
 ## How Query Store works
 
-In the [Understanding how SQL Server executes a query](http://rusanu.com/2013/08/01/understanding-how-sql-server-executes-a-query/) article I explained some of the internals of how SQL Server executes queries. We can take execution workflow picture and annotate it with Query Store specific information:
+In the [Understanding how SQL Server executes a query](/2013/08/01/understanding-how-sql-server-executes-a-query/) article I explained some of the internals of how SQL Server executes queries. We can take execution workflow picture and annotate it with Query Store specific information:
 
-[<img src="http://rusanu.com/wp-content/uploads/2015/08/QDS-Execution.png" alt="QDS-Execution" width="600" class="aligncenter size-full wp-image-2450" />](http://rusanu.com/wp-content/uploads/2015/08/QDS-Execution.png)
+[<img src="/wp-content/uploads/2015/08/QDS-Execution.png" alt="QDS-Execution" width="600" class="aligncenter size-full wp-image-2450" />](/wp-content/uploads/2015/08/QDS-Execution.png)
 
 Query Store is notified of compilation duration after each statement compilation, and execution stats after each statement execution. Query Store caches the stats in memory and aggregates them for each query and plan. Periodically it will flush the accumulated statistics into the database. The frequency of flushing the stats depends on the [<tt>INTERVAL_LENGTH_MINUTES</tt>](https://msdn.microsoft.com/en-US/library/dn817826.aspx#Options) Query Store option:
 

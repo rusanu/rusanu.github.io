@@ -4,7 +4,7 @@ title: Download and Upload images from SQL Server via ASP.Net MVC
 date: 2010-12-28T22:19:26+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/?p=978
+guid: /?p=978
 permalink: /2010/12/28/download-and-upload-images-from-sql-server-with-asp-net-mvc/
 categories:
   - Samples

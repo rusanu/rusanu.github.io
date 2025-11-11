@@ -4,7 +4,7 @@ title: Show all index and heap access operators in the plan cache
 date: 2012-01-27T15:42:44+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/?p=1383
+guid: /?p=1383
 permalink: /2012/01/27/show-all-index-and-heap-access-operators-in-the-plan-cache/
 categories:
   - Samples
@@ -44,4 +44,4 @@ cross apply pl.query_plan.nodes('//RelOp[./*/Object/@Database]') as op(x)
 cross apply op.x.nodes('./*/Object') as ob(ox)
 </code></pre>
 
-[<img src="http://rusanu.com/wp-content/uploads/2012/01/query_plan_access_relop.png" alt="" title="query_plan_access_relop" width="600" class="aligncenter size-full wp-image-1423" />](http://rusanu.com/wp-content/uploads/2012/01/query_plan_access_relop.png)
+[<img src="/wp-content/uploads/2012/01/query_plan_access_relop.png" alt="" title="query_plan_access_relop" width="600" class="aligncenter size-full wp-image-1423" />](/wp-content/uploads/2012/01/query_plan_access_relop.png)

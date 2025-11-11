@@ -4,7 +4,7 @@ title: 'AlwaysOn: High-Availability and reads Scale-Out'
 date: 2010-11-11T10:48:41+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/?p=902
+guid: /?p=902
 permalink: /2010/11/11/alwayson-high-availability-and-reads-scale-out/
 categories:
   - Announcements
@@ -101,13 +101,13 @@ The following table shows the main differences between AlwaysOn and Database Mir
 
 DBM considers each mirrored database as an individual entity:
 
-[<img class="aligncenter size-full wp-image-927" title="Database Mirroring Setup" src="http://rusanu.com/wp-content/uploads/2010/11/dbm_setup.png" alt="" width="90%" />](http://rusanu.com/wp-content/uploads/2010/11/dbm_setup.png)
+[<img class="aligncenter size-full wp-image-927" title="Database Mirroring Setup" src="/wp-content/uploads/2010/11/dbm_setup.png" alt="" width="90%" />](/wp-content/uploads/2010/11/dbm_setup.png)
 
 But often application are deployed on several databases contained in an instance and there are tight dependencies between them (eg. cross database queries and procedures). With DBM one had to set up complicated logic to force failover of all related databases if one individual database was occurring a failover event. AlwaysOn introduces Availability Groups that allows explicit declaration of such dependencies. A failover occurs always as an entire group, all databases in the group fail over together become available on the new primary host.
 
 The individual databases inside an Availability Group are still replicated using the Database Mirroring technology:
 
-[<img class="aligncenter size-full wp-image-930" title="AlwaysOn Setup" src="http://rusanu.com/wp-content/uploads/2010/11/hadr_setup.png" alt="" width="90%" />](http://rusanu.com/wp-content/uploads/2010/11/hadr_setup.png)
+[<img class="aligncenter size-full wp-image-930" title="AlwaysOn Setup" src="/wp-content/uploads/2010/11/hadr_setup.png" alt="" width="90%" />](/wp-content/uploads/2010/11/hadr_setup.png)
 
 ## Multiple Secondaries
 
@@ -120,7 +120,7 @@ The figure bellow show a possible AlwaysOn deployment on a 4 node cluster:
   * Availability Group 3 contains five databases, it has the primary availability group running on the SQL Server instance on node D of the cluster and an availability secondary replica on the instance on node C of the cluster.
   * Availability Group 4 contains two databases, it has the primary availability group running on the SQL Server instance on node B of the cluster and an availability secondary replica on the instance on node D of the cluster.
 
-[<img class="aligncenter size-full wp-image-935" title="Cluster Configuration" src="http://rusanu.com/wp-content/uploads/2010/11/cluster_setup.png" alt="" width="90%" />](http://rusanu.com/wp-content/uploads/2010/11/cluster_setup.png)
+[<img class="aligncenter size-full wp-image-935" title="Cluster Configuration" src="/wp-content/uploads/2010/11/cluster_setup.png" alt="" width="90%" />](/wp-content/uploads/2010/11/cluster_setup.png)
 
 ## Readable Secondaries
 
@@ -128,7 +128,7 @@ Secondary replicas are readable in real-time. All read-only operations are allow
 
 The following image shows a possible AlwaysOn reads Scale-Out deployed on a 3 node cluster to serve a web farm. Read requests can be server by any of the availability replicas, including the Primary Replica. Write requests have to be all routed to the Primary Replica:
 
-[<img class="aligncenter size-full wp-image-937" title="Read Scale Out" src="http://rusanu.com/wp-content/uploads/2010/11/read_scale_out.png" alt="" width="90%" />](http://rusanu.com/wp-content/uploads/2010/11/read_scale_out.png)
+[<img class="aligncenter size-full wp-image-937" title="Read Scale Out" src="/wp-content/uploads/2010/11/read_scale_out.png" alt="" width="90%" />](/wp-content/uploads/2010/11/read_scale_out.png)
 
 ## What gives
 

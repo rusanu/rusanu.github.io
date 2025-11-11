@@ -4,7 +4,7 @@ title: Exception handling and nested transactions
 date: 2009-06-11T10:40:19+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/?p=430
+guid: /?p=430
 permalink: /2009/06/11/exception-handling-and-nested-transactions/
 categories:
   - CodeProject

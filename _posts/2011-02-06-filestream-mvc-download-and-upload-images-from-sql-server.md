@@ -4,7 +4,7 @@ title: 'FILESTREAM MVC: Download and Upload images from SQL Server'
 date: 2011-02-06T20:05:53+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/?p=1047
+guid: /?p=1047
 permalink: /2011/02/06/filestream-mvc-download-and-upload-images-from-sql-server/
 categories:
   - CodeProject
@@ -19,7 +19,7 @@ tags:
   - streaming
   - upload
 ---
-In a previous article I have shown how it is possible to use efficient streaming semantics when [Download and Upload images from SQL Server via ASP.Net MVC](http://rusanu.com/2010/12/28/download-and-upload-images-from-sql-server-with-asp-net-mvc/). In this article I will go over an alternative approach that relies on the <a href="http://technet.microsoft.com/en-us/library/bb933993.aspx" target="_blank"><tt>FILESTREAM</tt></a> column types introduced in SQL Server 2008.
+In a previous article I have shown how it is possible to use efficient streaming semantics when [Download and Upload images from SQL Server via ASP.Net MVC](/2010/12/28/download-and-upload-images-from-sql-server-with-asp-net-mvc/). In this article I will go over an alternative approach that relies on the <a href="http://technet.microsoft.com/en-us/library/bb933993.aspx" target="_blank"><tt>FILESTREAM</tt></a> column types introduced in SQL Server 2008.
 
 ### What is FILESTREAM?
 
@@ -70,7 +70,7 @@ go
 
 ## FILESTREAM based <span style="text-transform: none">IMediaRepository</span>
 
-If you haven&#8217;t read the previous article [Download and Upload images from SQL Server via ASP.Net MVC](http://rusanu.com/2010/12/28/download-and-upload-images-from-sql-server-with-asp-net-mvc/) yet, now is a good time to do it. I am going to reuse the same code and simply provide a new implementation for the <tt>IMediaRepository</tt> interface, an implementation that works with FILESTREAM storage:
+If you haven&#8217;t read the previous article [Download and Upload images from SQL Server via ASP.Net MVC](/2010/12/28/download-and-upload-images-from-sql-server-with-asp-net-mvc/) yet, now is a good time to do it. I am going to reuse the same code and simply provide a new implementation for the <tt>IMediaRepository</tt> interface, an implementation that works with FILESTREAM storage:
 
 <pre><code class="prettyprint linenums">
     /// &lt;summary&gt;
@@ -313,7 +313,7 @@ The only thing requiring explanation is the MvcResultSqlFileStream class. Becaus
 
 This extra class feels rather unnecessary, but unfortunately is required because the MVC framework has no proper handling of resources passed out from the controller. If you ask me ActionResult should implement IDisposable, but then of course nobody asks me 😉
 
-You can download the source for the entire MVC project from [here](http://rusanu.com/wp-content/uploads/2011/02/MvcMedia.Filestream.zip).
+You can download the source for the entire MVC project from [here](/wp-content/uploads/2011/02/MvcMedia.Filestream.zip).
 
 ## Conclusion
 

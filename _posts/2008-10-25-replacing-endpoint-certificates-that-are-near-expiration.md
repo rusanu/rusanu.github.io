@@ -4,7 +4,7 @@ title: Replacing Endpoint Certificates that are near expiration
 date: 2008-10-25T05:41:25+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/?p=137
+guid: /?p=137
 permalink: /2008/10/25/replacing-endpoint-certificates-that-are-near-expiration/
 categories:
   - Tutorials
@@ -17,7 +17,7 @@ tags:
   - sql
   - t-sql
 ---
-In my [previous post](http://rusanu.com/2008/10/23/how-does-certificate-based-authentication-work/) I have explained how Database Mirroring and Service Broker use certificates for endpoint authentication. The only thing validated by SSB/DBM on a certificate are the valid-from date and the expiration date. In fact, even if SSB would not validate these dates, the TLS protocol used underneath by SSB/DBM authentication mechanism would validate these dates. In practice the only one that matter is the expiration date since the valid-from date is usually valid from the moment the certificate was created. Although if you follow this blog you know that I have already talked about a problem that may appear with certificates not yet valid, see <a href="http://rusanu.com/2008/08/25/certificate-not-yet-valid" target="_blank">http://rusanu.com/2008/08/25/certificate-not-yet-valid</a>.
+In my [previous post](/2008/10/23/how-does-certificate-based-authentication-work/) I have explained how Database Mirroring and Service Broker use certificates for endpoint authentication. The only thing validated by SSB/DBM on a certificate are the valid-from date and the expiration date. In fact, even if SSB would not validate these dates, the TLS protocol used underneath by SSB/DBM authentication mechanism would validate these dates. In practice the only one that matter is the expiration date since the valid-from date is usually valid from the moment the certificate was created. Although if you follow this blog you know that I have already talked about a problem that may appear with certificates not yet valid, see <a href="/2008/08/25/certificate-not-yet-valid" target="_blank">/2008/08/25/certificate-not-yet-valid</a>.
 
 <!--more-->
 
@@ -75,7 +75,7 @@ First thing I need to check the endpoints authentication type and find the certi
 <pre><span style="color: Black"></span><span style="color:Blue">select</span><span style="color:Black"> connection_auth_desc</span><span style="color:Gray">,</span><span style="color:Black"> certificate_id</span><span style="color:Gray">,</span><span style="color:Black"> </span><span style="color:Gray">*</span><span style="color:Black"> </span><span style="color:Blue">from</span><span style="color:Black"> </span><span style="color:Green">sys.service_broker_endpoints</span></pre>
 
 <div class="post-image">
-  <a href="http://rusanu.com/wp-content/uploads/2008/10/service_broker_endpoints.png" target="_blank"><img src="http://rusanu.com/wp-content/uploads/2008/10/service_broker_endpoints.png" alt="select connection_auth_desc, certificate_id, * from sys.service_broker_endpoints;" title="Click on the image for a full size view" width="250" /></a>
+  <a href="/wp-content/uploads/2008/10/service_broker_endpoints.png" target="_blank"><img src="/wp-content/uploads/2008/10/service_broker_endpoints.png" alt="select connection_auth_desc, certificate_id, * from sys.service_broker_endpoints;" title="Click on the image for a full size view" width="250" /></a>
 </div>
 
 The endpoint metadata shows that is using <tt>CERTIFICATE</tt> authentication and is using the certificate with id 261. So next I can check the certificate expiration date:
@@ -83,7 +83,7 @@ The endpoint metadata shows that is using <tt>CERTIFICATE</tt> authentication an
 <pre><span style="color: Black"></span><span style="color:Blue">select</span><span style="color:Black"> </span><span style="color:Blue">expiry_date</span><span style="color:Gray">,</span><span style="color:Black"> thumbprint</span><span style="color:Gray">,</span><span style="color:Black"> </span><span style="color:Gray">*</span><span style="color:Black"> </span><span style="color:Blue">from</span><span style="color:Black"> master</span><span style="color:Gray">.</span><span style="color:Green">sys.certificates</span><span style="color:Black"> </span><span style="color:Blue">where</span><span style="color:Black"> certificate_id </span><span style="color:Gray">=</span><span style="color:Black"> 261</span><span style="color:Gray">;</span></pre>
 
 <div class="post-image">
-  <a href="http://rusanu.com/wp-content/uploads/2008/10/certificate_thumbprint.png" target="_blank"><img src="http://rusanu.com/wp-content/uploads/2008/10/certificate_thumbprint.png" alt="select expiry_date, thumbprint, * from master.sys.certificates where certificate_id = 261;" title="Click on the image for a full size view" width="250" /></a>
+  <a href="/wp-content/uploads/2008/10/certificate_thumbprint.png" target="_blank"><img src="/wp-content/uploads/2008/10/certificate_thumbprint.png" alt="select expiry_date, thumbprint, * from master.sys.certificates where certificate_id = 261;" title="Click on the image for a full size view" width="250" /></a>
 </div>
 
 The certificate used by the Service Broker endpoint on <tt>REMUSRX64</tt> is going to expire on November 1st. That is quite near so I better go ahead and replace this certificate. BTW you notice that I have also explicitly selected the certificate thumbprint, more on this later. First I&#8217;m going to create a new certificate that later will be used be the Service Broker endpoint on <tt>REMUSX64</tt> for authentication:
@@ -92,7 +92,7 @@ The certificate used by the Service Broker endpoint on <tt>REMUSRX64</tt> is goi
 	</span><span style="color:Blue">with</span><span style="color:Black"> </span><span style="color:Blue">subject</span><span style="color:Black"> </span><span style="color:Gray">=</span><span style="color:Black"> </span><span style="color:Red">'REMUSRX64 Endpoint Identity'</span><span style="color:Gray">,
 </span><span style="color:Black">	</span><span style="color:Blue">start_date</span><span style="color:Black"> </span><span style="color:Gray">=</span><span style="color:Black"> </span><span style="color:Red">'10/25/2008'</span><span style="color:Gray">;</span></pre>
 
-As you see I did specify a <tt>start_date</tt> in order to avoid the problem I described in my <a href="http://rusanu.com/2008/08/25/certificate-not-yet-valid/" target="_blank">earlier blog post</a> with certificate start date in Eastern hemisphere. Of course you should use a <tt>start_date</tt> value that matches the day you are doing the replacement operation. Next I&#8217;m going to copy the newly created certificate to <tt>VSQL2K5EXPRESS</tt>. First thing I&#8217;ll backup the certificate to a <tt>.CER</tt> file:
+As you see I did specify a <tt>start_date</tt> in order to avoid the problem I described in my <a href="/2008/08/25/certificate-not-yet-valid/" target="_blank">earlier blog post</a> with certificate start date in Eastern hemisphere. Of course you should use a <tt>start_date</tt> value that matches the day you are doing the replacement operation. Next I&#8217;m going to copy the newly created certificate to <tt>VSQL2K5EXPRESS</tt>. First thing I&#8217;ll backup the certificate to a <tt>.CER</tt> file:
 
 <pre><span style="color: Black"></span><span style="color:Blue">backup</span><span style="color:Black"> </span><span style="color:Blue">certificate</span><span style="color:Black"> [REMUSRX64_Nov_2008]
 	</span><span style="color:Blue">to</span><span style="color:Black"> </span><span style="color:Blue">file</span><span style="color:Black"> </span><span style="color:Gray">=</span><span style="color:Black"> </span><span style="color:Red">'REMUSRX64_Nov_2008.CER'</span><span style="color:Gray">;</span></pre>
@@ -103,7 +103,7 @@ Next I&#8217;m copying over the <tt>REMUSRX64_Nov_2008.CER</tt> file to <tt>VSQL
 </span><span style="color:Black">	</span><span style="color:Blue">where</span><span style="color:Black"> thumbprint </span><span style="color:Gray">=</span><span style="color:Black"> 0x67BB038B404E24BAA95B28F714C38A39323E1643</span><span style="color:Gray">;</span></pre>
 
 <div class="post-image">
-  <a href="http://rusanu.com/wp-content/uploads/2008/10/certificate_owner.png" target="_blank"><img src="http://rusanu.com/wp-content/uploads/2008/10/certificate_owner.png" alt="select principal_id, * from master.sys.certificates;" title="Click on the image for a full size view" width="250" /></a>
+  <a href="/wp-content/uploads/2008/10/certificate_owner.png" target="_blank"><img src="/wp-content/uploads/2008/10/certificate_owner.png" alt="select principal_id, * from master.sys.certificates;" title="Click on the image for a full size view" width="250" /></a>
 </div>
 
 The owner of the certificate is the user with the principal id 6. Why did I use the thumbprint to look up the certificate? Because this is the only bulletproof way to identify the right certificate. I cannot use the name, because the certificate on <tt>VSQL2K5EXPRESS</tt> can have any name, does not have to match the name used on <tt>REMUSRX64</tt>. Next I&#8217;m going to find the name of the user with principal id 6:
@@ -112,7 +112,7 @@ The owner of the certificate is the user with the principal id 6. Why did I use 
 </span><span style="color:Black">	</span><span style="color:Blue">where</span><span style="color:Black"> principal_id </span><span style="color:Gray">=</span><span style="color:Black"> 6</span><span style="color:Gray">;</span></pre>
 
 <div class="post-image">
-  <a href="http://rusanu.com/wp-content/uploads/2008/10/principal_name.png" target="_blank"><img src="http://rusanu.com/wp-content/uploads/2008/10/principal_name.png" alt="select * from master.sys.database_principals where principal_id = 6;" title="Click on the image for a full size view" width="250" /></a>
+  <a href="/wp-content/uploads/2008/10/principal_name.png" target="_blank"><img src="/wp-content/uploads/2008/10/principal_name.png" alt="select * from master.sys.database_principals where principal_id = 6;" title="Click on the image for a full size view" width="250" /></a>
 </div>
 
 The user is named <tt>REMUSRX64_Endpoint</tt> and with this knowledge I can now restore the newly created certificate copied from <tt>REMUSRX64</tt> on <tt>VSQL2K5EXPRESS</tt>:
@@ -134,7 +134,7 @@ With this statement I have switched over to use the new certificate. The endpoin
 	</span><span style="color:Blue">from</span><span style="color:Black"> </span><span style="color:Green">sys.dm_broker_connections</span></pre>
 
 <div class="post-image">
-  <a href="http://rusanu.com/wp-content/uploads/2008/10/connection_principal.png" target="_blank"><img src="http://rusanu.com/wp-content/uploads/2008/10/connection_principal.png" alt="select principal_name, peer_certificate_id, authentication_method, * from sys.dm_broker_connections" title="Click on the image for a full size view" width="250" /></a>
+  <a href="/wp-content/uploads/2008/10/connection_principal.png" target="_blank"><img src="/wp-content/uploads/2008/10/connection_principal.png" alt="select principal_name, peer_certificate_id, authentication_method, * from sys.dm_broker_connections" title="Click on the image for a full size view" width="250" /></a>
 </div>
 
 The peer <tt>REMUSRX64</tt> was authenticated to the principal name <tt>REMUSRX64_Endpoint</tt> based on the certificate with id 260. You can verify that this is the new certificate. If you&#8217;re curious what does the authentication method <tt>Microsoft Unified Security Proto</tt> mean, it is the name of the SChannel SSPI provider which was used for authentication.

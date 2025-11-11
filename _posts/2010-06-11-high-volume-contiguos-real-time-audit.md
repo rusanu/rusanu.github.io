@@ -4,7 +4,7 @@ title: High Volume Contiguos Real Time Audit and ETL
 date: 2010-06-11T11:31:18+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/?p=829
+guid: /?p=829
 permalink: /2010/06/11/high-volume-contiguos-real-time-audit/
 categories:
   - Announcements

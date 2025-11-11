@@ -4,7 +4,7 @@ title: 'Why does feature &#8230; not work under activation?'
 date: 2006-01-12T09:14:08+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/2006/01/12/why-does-feature-not-work-under-activation/
+guid: /2006/01/12/why-does-feature-not-work-under-activation/
 permalink: /2006/01/12/why-does-feature-not-work-under-activation/
 categories:
   - Troubleshooting

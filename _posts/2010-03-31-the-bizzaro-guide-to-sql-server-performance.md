@@ -4,7 +4,7 @@ title: The Bizzaro Guide to SQL Server Performance
 date: 2010-03-31T01:28:16+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/?p=747
+guid: /?p=747
 permalink: /2010/03/31/the-bizzaro-guide-to-sql-server-performance/
 categories:
   - Troubleshooting

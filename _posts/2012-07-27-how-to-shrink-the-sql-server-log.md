@@ -4,7 +4,7 @@ title: How to shrink the SQL Server log
 date: 2012-07-27T00:52:41+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/?p=1577
+guid: /?p=1577
 permalink: /2012/07/27/how-to-shrink-the-sql-server-log/
 categories:
   - Troubleshooting
@@ -13,12 +13,12 @@ categories:
 
 The problem is that even after you discover about <tt>DBCC SHRINKFILE</tt> and attempt to reduce the log size, the command seems not to work at all and leaves the log at the same size as before. What is happening?
 
-If you look back at [What is an LSN: Log Sequence Number](http://rusanu.com/2012/01/17/what-is-an-lsn-log-sequence-number/) you will see that LSNs are basically pointers (offsets) inside the log file. There is one level of indirection (the VLF sequence number) and then the rest of the LSN is basically an offset inside the Virtual Log File (the VLF). The log is always defined by the two LSNs: the head of the log (where new log records will be placed) and the tail of the log (what is the oldest log record of interest). Generating log activity (ie. any updates in the database) advance the head of the log LSN number. The tail of the log advances when the database log is being backed up (this is a simplification, more on it later).
+If you look back at [What is an LSN: Log Sequence Number](/2012/01/17/what-is-an-lsn-log-sequence-number/) you will see that LSNs are basically pointers (offsets) inside the log file. There is one level of indirection (the VLF sequence number) and then the rest of the LSN is basically an offset inside the Virtual Log File (the VLF). The log is always defined by the two LSNs: the head of the log (where new log records will be placed) and the tail of the log (what is the oldest log record of interest). Generating log activity (ie. any updates in the database) advance the head of the log LSN number. The tail of the log advances when the database log is being backed up (this is a simplification, more on it later).
 
 <!--more-->
 
   
-[<img src="http://rusanu.com/wp-content/uploads/2012/07/Truncate-log-1.png" alt="" title="Truncate log-1" width="600" class="aligncenter size-full wp-image-1594" />](http://rusanu.com/wp-content/uploads/2012/07/Truncate-log-1.png)
+[<img src="/wp-content/uploads/2012/07/Truncate-log-1.png" alt="" title="Truncate log-1" width="600" class="aligncenter size-full wp-image-1594" />](/wp-content/uploads/2012/07/Truncate-log-1.png)
 
 <p class="callout float-right">
   Use <tt>DBCC LOGINFO</tt> to view the layout of the VFLs inside the log file
@@ -26,25 +26,25 @@ If you look back at [What is an LSN: Log Sequence Number](http://rusanu.com/2012
 
 The image above shows as typical log file layout. To understand the layout of VLFs inside your LDF log file use <tt>DBCC LOGINFO</tt>. The head of the log moves ahead as transactions generate log records, occupying more of the free space ahead in the current VLF. If the current VLF fills up, a new empty VLF can be used. If there are no empty VLFs the system must grow the log LDF file and create a new VLF to allow for more log records to be written. This is when the physical LDF file actually increases and takes more space on disk:
 
-[<img src="http://rusanu.com/wp-content/uploads/2012/07/Truncate-log-2.png" alt="" title="Truncate log-2" width="600" class="aligncenter size-full wp-image-1597" />](http://rusanu.com/wp-content/uploads/2012/07/Truncate-log-2.png)
+[<img src="/wp-content/uploads/2012/07/Truncate-log-2.png" alt="" title="Truncate log-2" width="600" class="aligncenter size-full wp-image-1597" />](/wp-content/uploads/2012/07/Truncate-log-2.png)
 
 <p class="callout float-right">
   Advancing the head of the log can cause LDF file growth when no free VLFs are available
 </p>
 
-In the image above some more transaction activity resulted in head of the log advancing forward. As the VLF2 filled up, the system had to allocate a new VLF by growing the physical log LDF file. The unused space in VLF1 cannot be used as long as there is even a single active LSN record in it, the [What is an LSN: Log Sequence Number](http://rusanu.com/2012/01/17/what-is-an-lsn-log-sequence-number/) article explains why this is the case. If we now take a backup of the log **truncation** would occur. Truncation is described as &#8216;deleting the log records&#8217; but no actual physical deletion needs to occur. It simply means the tail of the log will move forward: a database property that contains the LSN number of the tails of the log gets updated with the new LSN number repreesenting the new rail of the log position:
+In the image above some more transaction activity resulted in head of the log advancing forward. As the VLF2 filled up, the system had to allocate a new VLF by growing the physical log LDF file. The unused space in VLF1 cannot be used as long as there is even a single active LSN record in it, the [What is an LSN: Log Sequence Number](/2012/01/17/what-is-an-lsn-log-sequence-number/) article explains why this is the case. If we now take a backup of the log **truncation** would occur. Truncation is described as &#8216;deleting the log records&#8217; but no actual physical deletion needs to occur. It simply means the tail of the log will move forward: a database property that contains the LSN number of the tails of the log gets updated with the new LSN number repreesenting the new rail of the log position:
 
-[<img src="http://rusanu.com/wp-content/uploads/2012/07/Truncate-log-3.png" alt="" title="Truncate log-3" width="600" class="aligncenter size-full wp-image-1601" />](http://rusanu.com/wp-content/uploads/2012/07/Truncate-log-3.png)
+[<img src="/wp-content/uploads/2012/07/Truncate-log-3.png" alt="" title="Truncate log-3" width="600" class="aligncenter size-full wp-image-1601" />](/wp-content/uploads/2012/07/Truncate-log-3.png)
 
 As the head of the log continues to advance due to normal database activity, it now has room to grow by re-using the free VLF 1. This will cause an active log wrap around: the log starts reusing free\ VLFs inside the LDF file and advancing the head of the log no longer causes physical LDF file to grow:
 
-[<img src="http://rusanu.com/wp-content/uploads/2012/07/Truncate-log-4.png" alt="" title="Truncate log-4" width="600"  class="aligncenter size-full wp-image-1611" />](http://rusanu.com/wp-content/uploads/2012/07/Truncate-log-4.png)
+[<img src="/wp-content/uploads/2012/07/Truncate-log-4.png" alt="" title="Truncate log-4" width="600"  class="aligncenter size-full wp-image-1611" />](/wp-content/uploads/2012/07/Truncate-log-4.png)
 
 In this configuration if the head of the log continues to advance it has room to grow in the VLF 1. But, unless further truncation occurs, if it fills VLF 1 in order to continue to move ahead the head of the log will require yet again the LDF file to grow in size to accommodate a new free VLF:
 
-[<img src="http://rusanu.com/wp-content/uploads/2012/07/Truncate-log-5.png" alt="" title="Truncate log-5" width="600" class="aligncenter size-full wp-image-1614" />](http://rusanu.com/wp-content/uploads/2012/07/Truncate-log-5.png)
+[<img src="/wp-content/uploads/2012/07/Truncate-log-5.png" alt="" title="Truncate log-5" width="600" class="aligncenter size-full wp-image-1614" />](/wp-content/uploads/2012/07/Truncate-log-5.png)
 
-If we truncate the log now the tail of the log would apparently follow the path taken by the head of the log and eventual catch up the current head of the log. In effect all that happens is that the database property that contains the LSN which si the current tail of the log gets updated with the new LSN. The apparent &#8216;path&#8217; is just an effect of the nature of LSN structure.[<img src="http://rusanu.com/wp-content/uploads/2012/07/Truncate-log-6.png" alt="" title="Truncate log-6" width="600" class="aligncenter size-full wp-image-1618" />](http://rusanu.com/wp-content/uploads/2012/07/Truncate-log-6.png)
+If we truncate the log now the tail of the log would apparently follow the path taken by the head of the log and eventual catch up the current head of the log. In effect all that happens is that the database property that contains the LSN which si the current tail of the log gets updated with the new LSN. The apparent &#8216;path&#8217; is just an effect of the nature of LSN structure.[<img src="/wp-content/uploads/2012/07/Truncate-log-6.png" alt="" title="Truncate log-6" width="600" class="aligncenter size-full wp-image-1618" />](/wp-content/uploads/2012/07/Truncate-log-6.png)
 
 In this state the LDF file contains 3 empty VLFs and only a small active log portion. However, the physical LDF file cannot be reduced in size, any attempt to shrink the file will fail. As a general rule a file (any file) can only be shrunk (reduce in size) by removing data at the end of the file (basically by reducing the file length). Is not possible to &#8216;delete&#8217; from the beginning of a file or from the middle of a file. Unlike data MDF files, the system cannot afford to move records around in order to free space at the end of the file, remember that LSNs are basically an offset inside the file. The active portion of the log cannot be moved, because there all those records in the active portion of the log would suddenly become invalid.
 
@@ -62,7 +62,7 @@ So if the LDF file can reduce its size (shrink) only be reducing its length and 
 
 This sequence of actions causes the head of the log to advance forward, creating new VLFs as the log file expands. When the situation is detected and the log backups are taken, the tail of the log catches up as truncation (logical freeing) occurs. But in the end the head of the log is located in the last added VLF, which is exactly at the end of the log file. Since the last VLF is active, no shrink can occur, as explained above, despite a large portion of the log file being free (inactive). To make progress in this situation one must first cause the head of the log to _move forward_ so that it fills the last VLF and then it wraps around and reuses the free VLF(s) at the beginning of the file. So, perhaps counter intuitively, you must actually _generate_ more log activity in order to be able to shrink the log file. On an active database this log activity will occur naturally from ordinary use, but if there is no activity then you must cause some. For example, do some updates in a transaction and roll back. Repeat this until the head of the log has wrapped around and is located in the VLFs at the beginning of the file. As soon as this happens, take another log backup to cause truncation which will move the tail of the log forward, following the head of the log and wrapping around. Now the VLFs at the end of the file are inactive and <tt>DBCC SHRINKFILE</tt> can actually succeed:
 
-[<img src="http://rusanu.com/wp-content/uploads/2012/07/Truncate-log-7.png" alt="" title="Truncate log-7" width="600"  class="aligncenter size-full wp-image-1638" />](http://rusanu.com/wp-content/uploads/2012/07/Truncate-log-7.png)
+[<img src="/wp-content/uploads/2012/07/Truncate-log-7.png" alt="" title="Truncate log-7" width="600"  class="aligncenter size-full wp-image-1638" />](/wp-content/uploads/2012/07/Truncate-log-7.png)
 
 ## DBCC LOGINFO
 

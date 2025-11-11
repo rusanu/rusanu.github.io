@@ -4,14 +4,14 @@ title: Adding a nullable column can update the entire table
 date: 2012-02-16T15:31:25+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/?p=1438
+guid: /?p=1438
 permalink: /2012/02/16/adding-a-nullable-column-can-update-the-entire-table/
 categories:
   - Samples
   - SQL 2012
   - Troubleshooting
 ---
-In a previous article [Online non-NULL with values column add in SQL Server 2012](http://rusanu.com/2011/07/13/online-non-null-with-values-column-add-in-sql-server-11/) I talked about how adding a non-null column with default values is now an online operation in SQL Server 2012 and I mentioned how the situation when the newly added column may increase the rowsize can result in the operation being performed offline:
+In a previous article [Online non-NULL with values column add in SQL Server 2012](/2011/07/13/online-non-null-with-values-column-add-in-sql-server-11/) I talked about how adding a non-null column with default values is now an online operation in SQL Server 2012 and I mentioned how the situation when the newly added column may increase the rowsize can result in the operation being performed offline:
 
 > In the case when the newly added column increases the maximum possible row size over the 8060 bytes limit the column cannot be added online.
 

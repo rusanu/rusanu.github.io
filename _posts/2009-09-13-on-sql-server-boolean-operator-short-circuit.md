@@ -4,7 +4,7 @@ title: On SQL Server boolean operator short-circuit
 date: 2009-09-13T12:36:38+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/?p=557
+guid: /?p=557
 permalink: /2009/09/13/on-sql-server-boolean-operator-short-circuit/
 categories:
   - Tutorials
@@ -90,7 +90,7 @@ go
 </pre>
 
 <div id="attachment_559" style="width: 510px" class="wp-caption alignnone">
-  <a href="http://rusanu.com/wp-content/uploads/2009/09/short-circuit.png"><img src="http://rusanu.com/wp-content/uploads/2009/09/short-circuit.png" alt="boolean short-circuit counter example query plan" title="short-circuit" width="500" height="123" class="size-full wp-image-559" /></a>
+  <a href="/wp-content/uploads/2009/09/short-circuit.png"><img src="/wp-content/uploads/2009/09/short-circuit.png" alt="boolean short-circuit counter example query plan" title="short-circuit" width="500" height="123" class="size-full wp-image-559" /></a>
   
   <p class="wp-caption-text">
     boolean short-circuit counter example query plan

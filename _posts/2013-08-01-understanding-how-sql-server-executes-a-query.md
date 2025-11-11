@@ -4,7 +4,7 @@ title: Understanding how SQL Server executes a query
 date: 2013-08-01T07:03:41+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/?p=1871
+guid: /?p=1871
 permalink: /2013/08/01/understanding-how-sql-server-executes-a-query/
 categories:
   - CodeProject
@@ -13,7 +13,7 @@ categories:
 ---
 If you are a developer writing applications that use SQL Server and you are wondering what exactly happens when you &#8216;run&#8217; a query from your application, I hope this article will help you write better database code and will help you get started when you have to investigate performance problems.
 
-[<img src="http://rusanu.com/wp-content/uploads/2013/07/execution-pipeline.png" alt="" title="execution-pipeline" width="600" class="alignleft size-full wp-image-1949" />](http://rusanu.com/wp-content/uploads/2013/07/execution-pipeline.png)
+[<img src="/wp-content/uploads/2013/07/execution-pipeline.png" alt="" title="execution-pipeline" width="600" class="alignleft size-full wp-image-1949" />](/wp-content/uploads/2013/07/execution-pipeline.png)
 
 ## Requests
 
@@ -141,7 +141,7 @@ SQL Server is a client-server platform. The only way to interact with the back-e
           </dl>
           
           <p>
-            With SQL Server 2012 there is another mode of organizing a data, namely <a href="http://rusanu.com/2012/05/29/inside-the-sql-server-2012-columnstore-indexes/" target="_blank">Nonclustered Columnstores</a> and in the next version of SQL Server there will also be a <a href="http://rusanu.com/2013/06/11/sql-server-clustered-columnstore-indexes-at-teched-2013/" target="_blank">Clustered Columnstore</a> mode. If you&#8217;re interested in them read the articles linked.
+            With SQL Server 2012 there is another mode of organizing a data, namely <a href="/2012/05/29/inside-the-sql-server-2012-columnstore-indexes/" target="_blank">Nonclustered Columnstores</a> and in the next version of SQL Server there will also be a <a href="/2013/06/11/sql-server-clustered-columnstore-indexes-at-teched-2013/" target="_blank">Clustered Columnstore</a> mode. If you&#8217;re interested in them read the articles linked.
           </p>
           
           <h2>

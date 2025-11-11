@@ -1,5 +1,20 @@
 {% include header.html %}
-<body>
-	 {{ content }}
-</body>
+
+<div id="main" class="clear">
+<div id="content">
+<div class="post" id="post-{{ page.id }}">
+<div class="post-title">
+<h1>{{ page.title }}</h1>
+<small>{{ page.date | date: "%B %-d, %Y" }}</small>
+</div>
+
+<div class="entry">
+{{ content }}
+</div>
+</div>
+</div>
+
+{% include sidebar.html %}
+</div>
+
 {% include footer.html %}

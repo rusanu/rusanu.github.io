@@ -4,7 +4,7 @@ title: SQL Server Clustered Columnstore Indexes at TechEd 2013
 date: 2013-06-11T06:31:05+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/?p=1799
+guid: /?p=1799
 permalink: /2013/06/11/sql-server-clustered-columnstore-indexes-at-teched-2013/
 categories:
   - Announcements
@@ -25,7 +25,7 @@ Now that the TechEd 2013 presentations are <a href="http://channel9.msdn.com/Eve
   * [Improvements in Bitmap filters](#hash)
   * [Archival support](#archival)
 
-It should be no surprise to anyone studying columnar storage that the updatable clustered columnstores coming with the next version of SQL Server are based on deltastores. I talked before about the [SQL Server 2012 Columnstore internals](http://rusanu.com/2012/05/29/inside-the-sql-server-2012-columnstore-indexes/) and I explained why the highly compressed format that makes columnar storage so fast it also makes it basically impossible to update in-place. The technique of having a &#8216;deltastore&#8217; which stores updates and, during scans, merge the updates with the columnar data is not new and is employed by several of the columnar storage solution vendors.
+It should be no surprise to anyone studying columnar storage that the updatable clustered columnstores coming with the next version of SQL Server are based on deltastores. I talked before about the [SQL Server 2012 Columnstore internals](/2012/05/29/inside-the-sql-server-2012-columnstore-indexes/) and I explained why the highly compressed format that makes columnar storage so fast it also makes it basically impossible to update in-place. The technique of having a &#8216;deltastore&#8217; which stores updates and, during scans, merge the updates with the columnar data is not new and is employed by several of the columnar storage solution vendors.
 
 <!--more-->
 

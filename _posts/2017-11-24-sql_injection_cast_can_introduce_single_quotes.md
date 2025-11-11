@@ -4,7 +4,7 @@ title: 'SQL Injection:  casting can introduce additional single quotes'
 date: 2017-11-24T05:41:16+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/?p=2534
+guid: /?p=2534
 permalink: /2017/11/24/sql_injection_cast_can_introduce_single_quotes/
 categories:
   - Tutorials

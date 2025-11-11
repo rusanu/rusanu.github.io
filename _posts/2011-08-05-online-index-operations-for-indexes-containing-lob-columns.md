@@ -4,7 +4,7 @@ title: Online Index Operations for indexes containing LOB columns
 date: 2011-08-05T14:26:44+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/?p=1256
+guid: /?p=1256
 permalink: /2011/08/05/online-index-operations-for-indexes-containing-lob-columns/
 categories:
   - Announcements
@@ -27,7 +27,7 @@ SQL Server supports online index and table rebuild operations which allow for ma
 
 To be accurate the restriction applies not to tables, but to any index or heap that contains an LOB column. That, of course, includes any clustered index or the base heap of a table if the table contains any LOB columns, but it would include any non-clustered index that includes a LOB column. In other words I can rebuild online non-clustered indexes of any table as long as they don&#8217;t use the INCLUDE clause to add a LOB column from the base table, but for sure I cannot rebuild online the table itself (meaning the clustered index or the heap). Nor can I add a clustered index to a base heap online, if the table contains LOB columns.
 
-The question whether one should just use <tt>VARCHAR(MAX)</tt> and stop worrying about the chosen field size has came up on StackOverflow several times (<a href="http://stackoverflow.com/questions/2091284/varcharmax-everywhere" target="_blank">varchar(max) everywhere?</a>) and I always pointed out that there are at least some limitations (impossibility to do do online maintenance rebuild operations, impossibility to index such fields) and also all MAX types have a slight performance overhead, see <a href="http://rusanu.com/2010/03/22/performance-comparison-of-varcharmax-vs-varcharn/" target="_blank">Performance comparison of varchar(max) vs. varchar(N)</a>).
+The question whether one should just use <tt>VARCHAR(MAX)</tt> and stop worrying about the chosen field size has came up on StackOverflow several times (<a href="http://stackoverflow.com/questions/2091284/varcharmax-everywhere" target="_blank">varchar(max) everywhere?</a>) and I always pointed out that there are at least some limitations (impossibility to do do online maintenance rebuild operations, impossibility to index such fields) and also all MAX types have a slight performance overhead, see <a href="/2010/03/22/performance-comparison-of-varcharmax-vs-varcharn/" target="_blank">Performance comparison of varchar(max) vs. varchar(N)</a>).
 
 ## Online Index Build, now with LOBs
 
@@ -55,7 +55,7 @@ go
 </code>
 </pre>
 
-[<img src="http://rusanu.com/wp-content/uploads/2011/08/oiblob-au.png" alt="" title="oiblob-au" width="600" height="77" class="aligncenter size-full wp-image-1263" />](http://rusanu.com/wp-content/uploads/2011/08/oiblob-au.png)
+[<img src="/wp-content/uploads/2011/08/oiblob-au.png" alt="" title="oiblob-au" width="600" height="77" class="aligncenter size-full wp-image-1263" />](/wp-content/uploads/2011/08/oiblob-au.png)
 
 Our test table shows three allocation units. Now lets rebuild our table and look again at our allocation units:
 
@@ -70,7 +70,7 @@ where p.object_id = object_id('test');
 go
 </code></pre>
 
-[<img src="http://rusanu.com/wp-content/uploads/2011/08/oiblob-au-offline.png" alt="" title="oiblob-au-offline" width="600" height="75" class="aligncenter size-full wp-image-1266" />](http://rusanu.com/wp-content/uploads/2011/08/oiblob-au-offline.png)
+[<img src="/wp-content/uploads/2011/08/oiblob-au-offline.png" alt="" title="oiblob-au-offline" width="600" height="75" class="aligncenter size-full wp-image-1266" />](/wp-content/uploads/2011/08/oiblob-au-offline.png)
 
 We can see that our DATa and SLOB (aka. row overflow) allocation units have changed because they were rebuilt (they have different IDs and start at different pages). But the important thing is that the BLOB allocation unit has **not** changed. After the offline table rebuild, it has the same ID and starts at the same pages. This is because table and index rebuild operations do not rebuild the LOB data. They rebuild the row data and the row-overflow data, but the newly built rows will simply point back to the same old LOB data. The idea is that tables with LOB columns have _large_ LOB values and rebuilding the LOB data would be prohibitive, with little or no benefit.
 
@@ -78,14 +78,14 @@ Offline operations can avoid rebuilding the LOB data without problems, but for o
 
 In SQL Server 11 this problem was solved and now online operations can rebuild indexes and tables with LOB columns while keeping the data in the LOB allocation unit in a consistent state. SQL Server will internally track how LOB data is referenced by both the old index and the new index being built and will take appropriate actions to manage the sharing of the LOB data.
 
-[<img src="http://rusanu.com/wp-content/uploads/2011/08/oiblob-shared.png" alt="" title="oiblob-shared" width="600" height="450" class="aligncenter size-full wp-image-1278" />](http://rusanu.com/wp-content/uploads/2011/08/oiblob-shared.png)
+[<img src="/wp-content/uploads/2011/08/oiblob-shared.png" alt="" title="oiblob-shared" width="600" height="450" class="aligncenter size-full wp-image-1278" />](/wp-content/uploads/2011/08/oiblob-shared.png)
 
 ## Limitations
 
 The following restrictions and limitations apply _only for the duration of the Online Index Rebuild operation_:
 
 Partial LOB <tt>.WRITE</tt> updates are transformed into full updates.
-:   LOB data supports a highly efficient update mode, the <tt><a href="http://msdn.microsoft.com/en-us/library/ms177523.aspx" target="_blank" >.WRITE</a></tt> syntax. This is critical in creating streaming semantics, see [Download and Upload images from SQL Server via ASP.Net MVC](http://rusanu.com/2010/12/28/download-and-upload-images-from-sql-server-with-asp-net-mvc/). When the <tt>.WRITE</tt> syntax is used on a LOB column belonging to an index that is being rebuilt online the generated plan will silently change it into a full value update, which generates significantly more log. If you rely heavily on this functionality be aware and schedule your online rebuilds accordingly.
+:   LOB data supports a highly efficient update mode, the <tt><a href="http://msdn.microsoft.com/en-us/library/ms177523.aspx" target="_blank" >.WRITE</a></tt> syntax. This is critical in creating streaming semantics, see [Download and Upload images from SQL Server via ASP.Net MVC](/2010/12/28/download-and-upload-images-from-sql-server-with-asp-net-mvc/). When the <tt>.WRITE</tt> syntax is used on a LOB column belonging to an index that is being rebuilt online the generated plan will silently change it into a full value update, which generates significantly more log. If you rely heavily on this functionality be aware and schedule your online rebuilds accordingly.
 
 DBCC CHECK operations will skip the consistency check of LOB allocation units belonging to indexes that are in the process of being rebuilt online.
 :   During the online operation the LOB allocation unit is shared between the old index and the new index and is consistent if you consider _both_ owners, however it may look inconsistent if considered from either one of the owner point of view.

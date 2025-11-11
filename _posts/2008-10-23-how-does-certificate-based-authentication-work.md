@@ -4,7 +4,7 @@ title: How does Certificate based Authentication work
 date: 2008-10-23T19:52:33+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/?p=129
+guid: /?p=129
 permalink: /2008/10/23/how-does-certificate-based-authentication-work/
 categories:
   - Tutorials

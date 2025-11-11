@@ -4,7 +4,7 @@ title: What is Remus up to?
 date: 2010-04-01T22:20:32+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/?p=754
+guid: /?p=754
 permalink: /2010/04/01/what-is-remus-up-to/
 categories:
   - Announcements

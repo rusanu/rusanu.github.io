@@ -4,7 +4,7 @@ title: Conversations Authentication
 date: 2008-11-04T15:16:57+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/?p=208
+guid: /?p=208
 permalink: /2008/11/04/conversations-authentication/
 categories:
   - Tutorials
@@ -16,7 +16,7 @@ tags:
   - sql
   - tsql
 ---
-I have covered before how <a href="http://rusanu.com/2008/10/23/how-does-certificate-based-authentication-work/" target="_blank">certificate based authentication works for endpoints</a>. I think is only fair to have a similar article covering how services use certificates for authentication and security. Service Broker conversations are very different though from endpoints in the way they use certificates for authentication and security. Unfortunately there is no similar protocol I could reffer to, like it was the case with endpoints and TLS.
+I have covered before how <a href="/2008/10/23/how-does-certificate-based-authentication-work/" target="_blank">certificate based authentication works for endpoints</a>. I think is only fair to have a similar article covering how services use certificates for authentication and security. Service Broker conversations are very different though from endpoints in the way they use certificates for authentication and security. Unfortunately there is no similar protocol I could reffer to, like it was the case with endpoints and TLS.
 
 Service Broker conversations need authentication in order to allow or reject the sender of a message as being permitted to send messages to a destination service. The message _sender_ in this context is the service that initiated the conversation. In Service Broker does not authenticate the user that sent a message (ie. the user logged in that issues the <tt>SEND</tt> or <tt>BEGIN CONVERSATION</tt> statement). Because Service Broker is designed as a mean to communicate between applications, users connected to an application are a _local_ concept that cannot be used for authentication purposes remotely. For example when Joe from accounting logs in to the Accounting application and this application has some data from the Inventory application, this later application will authorize the _Accounting application_ not _Joe_. Perhaps the Inventory application doesn&#8217;t even have Joe&#8217;s credentials, and no one wants to add additional tight coupling between the applications by having them be aware of each other user base just to be able to communicate.
 

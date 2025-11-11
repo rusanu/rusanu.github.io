@@ -4,7 +4,7 @@ title: Understanding Hash, Sort and Exchange Spill events
 date: 2011-10-19T12:28:10+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/?p=1324
+guid: /?p=1324
 permalink: /2011/10/19/understanding-hash-sort-and-exchange-spill-events/
 categories:
   - Troubleshooting

@@ -4,7 +4,7 @@ title: CLR Memory Leak
 date: 2009-01-19T13:58:09+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/?p=264
+guid: /?p=264
 permalink: /2009/01/19/clr-memory-leak/
 categories:
   - Troubleshooting

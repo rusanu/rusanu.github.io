@@ -4,7 +4,7 @@ title: Writing Service Broker Procedures
 date: 2006-10-16T03:44:18+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/2006/10/16/writing-service-broker-procedures/
+guid: /2006/10/16/writing-service-broker-procedures/
 permalink: /2006/10/16/writing-service-broker-procedures/
 categories:
   - Samples

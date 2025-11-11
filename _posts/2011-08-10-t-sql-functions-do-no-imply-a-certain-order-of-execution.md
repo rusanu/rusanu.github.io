@@ -4,7 +4,7 @@ title: T-SQL functions do no imply a certain order of execution
 date: 2011-08-10T01:48:48+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/?p=1290
+guid: /?p=1290
 permalink: /2011/08/10/t-sql-functions-do-no-imply-a-certain-order-of-execution/
 categories:
   - Samples
@@ -12,7 +12,7 @@ categories:
 ---
 Looking at this question on StackOverflow: <a href="http://stackoverflow.com/questions/6989522/conversion-failed-when-converting-from-a-character-string-to-uniqueidentifier-err" target="_blank">Conversion failed when converting from a character string to uniqueidentifier error in SQL Server</a> one can see a reproducible example where a string split UDF works fine in the SELECT statement, but it gives a conversion error in the DELETE statement. Certainly, a bug, right? Actually, not.
 
-The issue at hand is in fact remarkably similar to another common misconception around T-SQL I had to debunk some time ago, see [On SQL Server boolean operator short-circuit](http://rusanu.com/2009/09/13/on-sql-server-boolean-operator-short-circuit/): that C like operator short-circuit is guaranteed in T-SQL (hint: it isn&#8217;t, read the linked article to see a clear counter example).
+The issue at hand is in fact remarkably similar to another common misconception around T-SQL I had to debunk some time ago, see [On SQL Server boolean operator short-circuit](/2009/09/13/on-sql-server-boolean-operator-short-circuit/): that C like operator short-circuit is guaranteed in T-SQL (hint: it isn&#8217;t, read the linked article to see a clear counter example).
 
 In the StackOverlow post the misconception is that order of declaration implies order of execution, that the function is evaluated somehow separately from the rest of the query and some sort of temporary result is created that is then used in the overall query execution. This understanding comes naturally to the imperative procedural language mindset of developers trained in C, C++, C# and other similar languages. But in the SQL Server declarative language that is T-SQL, your intuition is actually wrong. To illustrate I will give a simple counter-example, reusing the code from my earlier boolean short-circuit article:
 
@@ -106,7 +106,7 @@ select [value]
 go
 </code></pre>
 
-[<img src="http://rusanu.com/wp-content/uploads/2011/08/udf-eav-plan.png" alt="" title="udf-eav-plan" width="600" height="288" class="aligncenter size-full wp-image-1295" />](http://rusanu.com/wp-content/uploads/2011/08/udf-eav-plan.png)
+[<img src="/wp-content/uploads/2011/08/udf-eav-plan.png" alt="" title="udf-eav-plan" width="600" height="288" class="aligncenter size-full wp-image-1295" />](/wp-content/uploads/2011/08/udf-eav-plan.png)
 
 Looking at the plan we see that, just as in my boolean short-circuit example, the presence of an index on <tt>attribute</tt> that includes the <tt>value</tt> column but not the <tt>is_numeric</tt> was too good opportunity to pass for the optimizer. And this plan will evaluate the <tt>cast([value]as int)</tt> expression **before** it evaluate the WHERE clause inside the UDF. That&#8217;s right, the WHERE clause of the UDF has moved in the execution plan _above_ the WHERE clause of the query using the UDF. The naive assumption that the function definition posses some sort of barrier for execution was proven wrong.
 

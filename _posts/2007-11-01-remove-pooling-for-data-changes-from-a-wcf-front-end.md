@@ -4,7 +4,7 @@ title: Remove pooling for data changes from a WCF front end
 date: 2007-11-01T18:37:13+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/2007/11/01/remove-pooling-for-data-changes-from-a-wcf-front-end/
+guid: /2007/11/01/remove-pooling-for-data-changes-from-a-wcf-front-end/
 permalink: /2007/11/01/remove-pooling-for-data-changes-from-a-wcf-front-end/
 categories:
   - Samples
@@ -19,7 +19,7 @@ This will provide the WCF service with a callback from the SqlDependency infrast
 <pre><code class="prettyprint linenums">
     [ServiceContract(
         Name="WCFQNTableSubscribe",
-        Namespace="http://rusanu.com/Samples/WCFQN",
+        Namespace="/Samples/WCFQN",
         CallbackContract=typeof(IWCFQNTableCallback),
         SessionMode=SessionMode.Required)]
     public interface IWCFQNTableSubscribe
@@ -108,5 +108,5 @@ The details are in how to get a WCF duplex contract up and running. Not every bi
 </pre>
 
 There are other binding that support duplex contracts, I based my example on the wsDualHTTPBinding just like the MSDN example does: <http://msdn2.microsoft.com/en-us/library/ms731184>.  
-I have uploaded my demo project here: <http://rusanu.com/wp-content/uploads/2007/11/wcfqn.zip>.  
+I have uploaded my demo project here: </wp-content/uploads/2007/11/wcfqn.zip>.  
 Update: I posted this on [github.com/rusanu/WCFQN](https://github.com/rusanu/WCFQN).

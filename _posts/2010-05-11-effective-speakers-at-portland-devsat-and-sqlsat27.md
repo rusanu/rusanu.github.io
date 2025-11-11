@@ -4,7 +4,7 @@ title: 'Effective Speakers at Portland #devsat and #sqlsat27'
 date: 2010-05-11T22:52:20+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/?p=792
+guid: /?p=792
 permalink: /2010/05/11/effective-speakers-at-portland-devsat-and-sqlsat27/
 categories:
   - Announcements

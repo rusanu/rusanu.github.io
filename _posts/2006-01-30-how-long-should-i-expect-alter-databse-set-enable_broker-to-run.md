@@ -4,7 +4,7 @@ title: 'How long should I expect ALTER DATABASE &#8230; SET ENABLE_BROKER to run
 date: 2006-01-30T12:55:22+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/2006/01/30/how-long-should-i-expect-alter-databse-set-enable_broker-to-run/
+guid: /2006/01/30/how-long-should-i-expect-alter-databse-set-enable_broker-to-run/
 permalink: /2006/01/30/how-long-should-i-expect-alter-databse-set-enable_broker-to-run/
 categories:
   - Troubleshooting

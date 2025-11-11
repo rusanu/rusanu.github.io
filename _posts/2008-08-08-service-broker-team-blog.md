@@ -4,7 +4,7 @@ title: Service Broker Team Blog
 date: 2008-08-08T18:50:09+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/?p=100
+guid: /?p=100
 permalink: /2008/08/08/service-broker-team-blog/
 categories:
   - Announcements

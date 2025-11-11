@@ -4,7 +4,7 @@ title: SqlDependency.OnChange callback timing
 date: 2008-01-04T12:18:49+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/2008/01/04/sqldependencyonchange-callback-timing/
+guid: /2008/01/04/sqldependencyonchange-callback-timing/
 permalink: /2008/01/04/sqldependencyonchange-callback-timing/
 categories:
   - Troubleshooting
@@ -16,7 +16,7 @@ I had reviewed the way SqlDependency works several times in this blog, but the i
 
 <code class="prettyprint lang-sql">The query notification dialog on conversation handle '{5925E62A-A3BA-DC11-9E8E-000C293EC5A4}.'closed due to the following error: '&lt;?xml version="1.0"?&gt;&lt;Error xmlns="http://schemas.microsoft.com/SQL/ServiceBroker/Error"&gt;&lt;Code&gt;-8470&lt;/Code&gt;&lt;Description&gt;Remote service has been dropped.&lt;/Description&gt;&lt;/Error&gt;'.</code>
 
-I decided to take a closer look. <span id="more-75"></span> The immediate cause of this error is quite clear, is it because the target service of a Query Notification subscription was dropped. I have covered the system error 8470 and others in my earlier post [<span style="color: #000000">Resending messages</span>](http://rusanu.com/2007/12/03/resending-messages/). But of course, the real question is why is this happening? Is there some coding error on the part of the application developer and some way to avoid this problem? Is there some configuration issue?
+I decided to take a closer look. <span id="more-75"></span> The immediate cause of this error is quite clear, is it because the target service of a Query Notification subscription was dropped. I have covered the system error 8470 and others in my earlier post [<span style="color: #000000">Resending messages</span>](/2007/12/03/resending-messages/). But of course, the real question is why is this happening? Is there some coding error on the part of the application developer and some way to avoid this problem? Is there some configuration issue?
 
 <!--more-->
 

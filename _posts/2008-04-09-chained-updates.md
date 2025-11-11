@@ -4,7 +4,7 @@ title: Chained Updates
 date: 2008-04-09T21:59:54+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/2008/04/09/chained-updates/
+guid: /2008/04/09/chained-updates/
 permalink: /2008/04/09/chained-updates/
 categories:
   - Samples

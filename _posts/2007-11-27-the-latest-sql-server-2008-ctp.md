@@ -4,7 +4,7 @@ title: The latest SQL Server 2008 CTP
 date: 2007-11-27T16:47:57+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/2007/11/27/the-latest-sql-server-2008-ctp/
+guid: /2007/11/27/the-latest-sql-server-2008-ctp/
 permalink: /2007/11/27/the-latest-sql-server-2008-ctp/
 categories:
   - Announcements

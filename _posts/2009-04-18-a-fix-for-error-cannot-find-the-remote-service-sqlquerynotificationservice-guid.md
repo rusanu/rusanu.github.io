@@ -4,14 +4,14 @@ title: A fix for error Cannot find the remote service SqlQueryNotificationServic
 date: 2009-04-18T00:53:03+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/?p=345
+guid: /?p=345
 permalink: /2009/04/18/a-fix-for-error-cannot-find-the-remote-service-sqlquerynotificationservice-guid/
 categories:
   - Announcements
 tags:
   - SqlDependency
 ---
-Sometimes your ERRORLOG is peppered with messages complaining about the service SqlQueryNotificationService-<guid> not existing or query notification dialogs being closed because they received an error message with the text <tt>Remote service has been dropped</tt>. I have blogged about this problem before: <a href="http://rusanu.com/2007/11/10/when-it-rains-it-pours/" target="_blank">http://rusanu.com/2007/11/10/when-it-rains-it-pours/</a>. Unfortunately this problem was not under your control as an administrator nor as a developer. It is caused by the way the SqlDependency component of ADO.Net deploys the temporary service, queue and procedure needed for its functioning. The problem could be caused by your application calling SqlDependency.Stop inadvertently but also by simple timing problems: <a href="http://rusanu.com/2008/01/04/sqldependencyonchange-callback-timing/" target="_blank">http://rusanu.com/2008/01/04/sqldependencyonchange-callback-timing/</a>.
+Sometimes your ERRORLOG is peppered with messages complaining about the service SqlQueryNotificationService-<guid> not existing or query notification dialogs being closed because they received an error message with the text <tt>Remote service has been dropped</tt>. I have blogged about this problem before: <a href="/2007/11/10/when-it-rains-it-pours/" target="_blank">/2007/11/10/when-it-rains-it-pours/</a>. Unfortunately this problem was not under your control as an administrator nor as a developer. It is caused by the way the SqlDependency component of ADO.Net deploys the temporary service, queue and procedure needed for its functioning. The problem could be caused by your application calling SqlDependency.Stop inadvertently but also by simple timing problems: <a href="/2008/01/04/sqldependencyonchange-callback-timing/" target="_blank">/2008/01/04/sqldependencyonchange-callback-timing/</a>.
 
 Good news: Microsoft has shipped a fix for this issue: <a href="http://support.microsoft.com/kb/958006" target="_blank">http://support.microsoft.com/kb/958006</a>. According to the knowledge base article you need to install the following Cumulative Update depending on your current version of SQL Server deployed:
 

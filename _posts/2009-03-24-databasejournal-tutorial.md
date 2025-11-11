@@ -4,7 +4,7 @@ title: DatabaseJournal Tutorial
 date: 2009-03-24T15:08:00+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/?p=298
+guid: /?p=298
 permalink: /2009/03/24/databasejournal-tutorial/
 categories:
   - Announcements

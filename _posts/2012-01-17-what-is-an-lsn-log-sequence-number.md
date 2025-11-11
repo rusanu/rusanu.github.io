@@ -4,7 +4,7 @@ title: 'What is an LSN: Log Sequence Number'
 date: 2012-01-17T19:33:28+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/?p=1381
+guid: /?p=1381
 permalink: /2012/01/17/what-is-an-lsn-log-sequence-number/
 categories:
   - Tutorials

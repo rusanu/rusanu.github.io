@@ -4,7 +4,7 @@ title: Processing conversation with priority order
 date: 2006-03-28T17:45:00+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/2006/03/28/processing-conversation-with-priority-order/
+guid: /2006/03/28/processing-conversation-with-priority-order/
 permalink: /2006/03/28/processing-conversation-with-priority-order/
 categories:
   - Samples

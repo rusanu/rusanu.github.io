@@ -4,7 +4,7 @@ title: 'Service Broker Whitepaper on MSDN: the 150 trick'
 date: 2009-03-25T02:24:59+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/?p=305
+guid: /?p=305
 permalink: /2009/03/25/service-broker-whitepaper-on-msdn-the-150-trick/
 categories:
   - Announcements

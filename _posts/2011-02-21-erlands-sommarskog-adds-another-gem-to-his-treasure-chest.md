@@ -4,7 +4,7 @@ title: 'Erland&#8217;s Sommarskog adds another gem to his treasure chest'
 date: 2011-02-21T22:25:29+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/?p=1073
+guid: /?p=1073
 permalink: /2011/02/21/erlands-sommarskog-adds-another-gem-to-his-treasure-chest/
 categories:
   - Announcements

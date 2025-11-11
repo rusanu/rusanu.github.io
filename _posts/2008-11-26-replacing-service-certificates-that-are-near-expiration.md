@@ -4,7 +4,7 @@ title: Replacing Service Certificates that are near expiration
 date: 2008-11-26T17:41:36+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/?p=221
+guid: /?p=221
 permalink: /2008/11/26/replacing-service-certificates-that-are-near-expiration/
 categories:
   - Troubleshooting
@@ -115,7 +115,7 @@ Now that I have the new certificate I can go ahead and deploy it on VSQL2K5EXPRE
 I next copy the file over to the VSQL2K5EXPRESS system:
 
 <div class="post-image">
-  <a href="/wp-content/uploads/2008/11/copy_service_new_cert.png" target="_blank"><img src="http://rusanu.com/wp-content/uploads/2008/11/copy_service_new_cert.png" alt="" title="copy_service_new_cert" width="250" class="alignnone size-thumbnail wp-image-228" /></a>
+  <a href="/wp-content/uploads/2008/11/copy_service_new_cert.png" target="_blank"><img src="/wp-content/uploads/2008/11/copy_service_new_cert.png" alt="" title="copy_service_new_cert" width="250" class="alignnone size-thumbnail wp-image-228" /></a>
 </div>
 
 In order to restore the certificate on the VSQL2K5EXPRESS system I need to know database principal used on VSQL2K5EXPRESS to represent the identity of <tt>MyService</tt>. In other words, I need to find out the owner, on VSQL2K5EXPRESS, of the existing certificate still used by <tt>MyService</tt>:

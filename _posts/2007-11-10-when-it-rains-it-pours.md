@@ -4,7 +4,7 @@ title: When it rains, it pours
 date: 2007-11-10T20:22:55+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/2007/11/10/when-it-rains-it-pours/
+guid: /2007/11/10/when-it-rains-it-pours/
 permalink: /2007/11/10/when-it-rains-it-pours/
 categories:
   - Troubleshooting
@@ -25,7 +25,7 @@ All these messages are related one way or another to the ADO.Net component SqlDe
 
 <!--more-->
 
-First, lets review in brief how the SqlDependency works. The application is supposed to invoke the static method SqlDependency.Start at startup to deploy the necessary infrastructure, then use instances of SqlDependency object associated with a SqlCommand to receive callbacks when the query executed is notified (data has changed), and finally call SqlDependency.Stop when the application shuts down to tear down the infrastructure deployed at startup. I have explained before how the server side Query Notifications feature works to detect the changes and to notify the subscriptions, see <http://rusanu.com/2006/06/17/the-mysterious-notification>.
+First, lets review in brief how the SqlDependency works. The application is supposed to invoke the static method SqlDependency.Start at startup to deploy the necessary infrastructure, then use instances of SqlDependency object associated with a SqlCommand to receive callbacks when the query executed is notified (data has changed), and finally call SqlDependency.Stop when the application shuts down to tear down the infrastructure deployed at startup. I have explained before how the server side Query Notifications feature works to detect the changes and to notify the subscriptions, see </2006/06/17/the-mysterious-notification>.
 
 The three errors above are all a result of the way how SqlDependency deploys and cleans up it’s infrastructure. The first error happens in the following scenario:
 

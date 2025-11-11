@@ -4,7 +4,7 @@ title: Error Handling and Activation
 date: 2008-08-13T18:44:59+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/?p=103
+guid: /?p=103
 permalink: /2008/08/13/error-handling-and-activation/
 categories:
   - Troubleshooting
@@ -14,7 +14,7 @@ tags:
   - error
   - service broker
 ---
-I have previously talked <a href="http://rusanu.com/2008/08/03/understanding-queue-monitors/" target="_blank">here</a> about the queue monitors and the role they play in launching activated procedures. If you recall, I&#8217;ve mentioned that the Queue Monitors will enter the <span style="color:Green">NOTIFIED</span> state after they launch a stored procedure and not launch again the procedure until the Queue Monitor notices that <span style="color:Blue">RECEIVE</span> statements are being issued against the queue. In an older <a href="http://rusanu.com/2007/10/31/error-handling-in-service-broker-procedures/" target="_blank">post</a> I have also talked about how difficult is to get error handling right, and in particular cast and convention errors. This may seem a trivial problem but in the Service Broker programs it is actually a serious problem because of the frequent conversation to and from XML. These two separate issues can actually &#8216;cooperate&#8217; into a somehow surprising behavior. Namely if the activated procedure hits an error _before_ it completes the <span style="color:Blue">RECEIVE</span> statement, the Queue Monitor will stay in <span style="color:Green">NOTIFIED</span> state and won&#8217;t activate again the procedure. Although this looks similar to the typical poison message behavior when the queue is automatically disabled, this is a different issue. And unlike the poison message case, in the case when the Queue Monitor is stranded in <span style="color:Green">NOTIFIED</span> state you can **not** get a notification that the queue is no longer functional.
+I have previously talked <a href="/2008/08/03/understanding-queue-monitors/" target="_blank">here</a> about the queue monitors and the role they play in launching activated procedures. If you recall, I&#8217;ve mentioned that the Queue Monitors will enter the <span style="color:Green">NOTIFIED</span> state after they launch a stored procedure and not launch again the procedure until the Queue Monitor notices that <span style="color:Blue">RECEIVE</span> statements are being issued against the queue. In an older <a href="/2007/10/31/error-handling-in-service-broker-procedures/" target="_blank">post</a> I have also talked about how difficult is to get error handling right, and in particular cast and convention errors. This may seem a trivial problem but in the Service Broker programs it is actually a serious problem because of the frequent conversation to and from XML. These two separate issues can actually &#8216;cooperate&#8217; into a somehow surprising behavior. Namely if the activated procedure hits an error _before_ it completes the <span style="color:Blue">RECEIVE</span> statement, the Queue Monitor will stay in <span style="color:Green">NOTIFIED</span> state and won&#8217;t activate again the procedure. Although this looks similar to the typical poison message behavior when the queue is automatically disabled, this is a different issue. And unlike the poison message case, in the case when the Queue Monitor is stranded in <span style="color:Green">NOTIFIED</span> state you can **not** get a notification that the queue is no longer functional.
 
 This post continues with an example showing how a relatively safe activated procedure can end up in this situation.
 
@@ -23,11 +23,11 @@ This post continues with an example showing how a relatively safe activated proc
 Lets consider what happens when a typical Service Broker activated procedure is presented with an invalid XML fragment in a message. First, lets create a pair of services:
 
 <pre><span style="color: Black"></span><span style="color:Blue">create</span><span style="color:Black"> </span><span style="color:Blue">queue</span><span style="color:Black"> [initiator]</span><span style="color:Gray">;
-</span><span style="color:Blue">create</span><span style="color:Black"> </span><span style="color:Blue">service</span><span style="color:Black"> [http://rusanu.com/2008/08/13/initiator] </span><span style="color:Blue">on</span><span style="color:Black"> </span><span style="color:Blue">queue</span><span style="color:Black"> [initiator]</span><span style="color:Gray">;
+</span><span style="color:Blue">create</span><span style="color:Black"> </span><span style="color:Blue">service</span><span style="color:Black"> [/2008/08/13/initiator] </span><span style="color:Blue">on</span><span style="color:Black"> </span><span style="color:Blue">queue</span><span style="color:Black"> [initiator]</span><span style="color:Gray">;
 </span><span style="color:Black">go
 
 </span><span style="color:Blue">create</span><span style="color:Black"> </span><span style="color:Blue">queue</span><span style="color:Black"> [target]</span><span style="color:Gray">;
-</span><span style="color:Blue">create</span><span style="color:Black"> </span><span style="color:Blue">service</span><span style="color:Black"> [http://rusanu.com/2008/08/13/target]
+</span><span style="color:Blue">create</span><span style="color:Black"> </span><span style="color:Blue">service</span><span style="color:Black"> [/2008/08/13/target]
 	</span><span style="color:Blue">on</span><span style="color:Black"> </span><span style="color:Blue">queue</span><span style="color:Black"> [target]
 	</span><span style="color:Gray">(</span><span style="color:Black">[DEFAULT]</span><span style="color:Gray">);
 </span><span style="color:Black">go</span></pre>
@@ -119,8 +119,8 @@ So we go ahead and test the procedure, by sending a message that will activate t
   &lt;workstation&gt;PCLAB36X&lt;/workstation&gt;
 &lt;/login_info&gt;'</span><span style="color:Gray">;
 </span><span style="color:Blue">begin</span><span style="color:Black"> </span><span style="color:Blue">dialog</span><span style="color:Black"> </span><span style="color:Blue">conversation</span><span style="color:Black"> @h
-	</span><span style="color:Blue">from</span><span style="color:Black"> </span><span style="color:Blue">service</span><span style="color:Black"> [http://rusanu.com/2008/08/13/initiator]
-	</span><span style="color:Blue">to</span><span style="color:Black"> </span><span style="color:Blue">service</span><span style="color:Black"> N</span><span style="color:Red">'http://rusanu.com/2008/08/13/target'
+	</span><span style="color:Blue">from</span><span style="color:Black"> </span><span style="color:Blue">service</span><span style="color:Black"> [/2008/08/13/initiator]
+	</span><span style="color:Blue">to</span><span style="color:Black"> </span><span style="color:Blue">service</span><span style="color:Black"> N</span><span style="color:Red">'/2008/08/13/target'
 </span><span style="color:Black">	</span><span style="color:Blue">with</span><span style="color:Black"> </span><span style="color:Blue">encryption</span><span style="color:Black"> </span><span style="color:Gray">=</span><span style="color:Black"> </span><span style="color:Blue">off</span><span style="color:Gray">;
 </span><span style="color:Blue">send</span><span style="color:Black"> </span><span style="color:Blue">on</span><span style="color:Black"> </span><span style="color:Blue">conversation</span><span style="color:Black"> @h </span><span style="color:Gray">(</span><span style="color:Black">@msg</span><span style="color:Gray">);
 </span><span style="color:Black">go</span></pre>

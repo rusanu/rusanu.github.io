@@ -4,7 +4,7 @@ title: Inside the SQL Server 2012 Columnstore Indexes
 date: 2012-05-29T03:38:46+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/?p=1463
+guid: /?p=1463
 permalink: /2012/05/29/inside-the-sql-server-2012-columnstore-indexes/
 categories:
   - Columnstore
@@ -25,13 +25,13 @@ Columnar storage has established itself as the de-facto option for Business Inte
 
 The defining characteristic of columnar storage is the ability to read the values of a particular column of a table without having to read the values of all the other columns. In row-oriented storage this is impossible because the individual column values are physically stored grouped in rows on the pages and reading a page in order to read a column value _must_ fetch the entire page in memory, thus automatically reading all the other columns in the row:
 
-[<img src="http://rusanu.com/wp-content/uploads/2012/05/row-oriented-reads.png" alt="" title="row-oriented-reads" width="600" class="aligncenter size-full wp-image-1465" />](http://rusanu.com/wp-content/uploads/2012/05/row-oriented-reads.png)
+[<img src="/wp-content/uploads/2012/05/row-oriented-reads.png" alt="" title="row-oriented-reads" width="600" class="aligncenter size-full wp-image-1465" />](/wp-content/uploads/2012/05/row-oriented-reads.png)
 
 This image shows how in row oriented storage a query that only needs to read the values of column <tt>A</tt> needs to pay the penalty of reading the entire pages, including the unnecessary columns B, C, D and E, simply because the physical format of the record and page. If you&#8217;re not familiar with the row format I strongly recommend Paul Randal&#8217;s article <a href="http://www.sqlskills.com/blogs/paul/post/Inside-the-Storage-Engine-Anatomy-of-a-record.aspx" target="_blank">Inside the Storage Engine: Anatomy of a Record</a>.
 
 By contrast the column oriented storage stores the data in a format that groups columns together on disk, so reading values from a single column incurs only the minimal IO needed to fetch in the column required by the query:
 
-[<img src="http://rusanu.com/wp-content/uploads/2012/05/column-oriented-reads.png" alt="" title="column-oriented-reads" width="447" height="454" class="aligncenter size-full wp-image-1467" />](http://rusanu.com/wp-content/uploads/2012/05/column-oriented-reads.png)
+[<img src="/wp-content/uploads/2012/05/column-oriented-reads.png" alt="" title="column-oriented-reads" width="447" height="454" class="aligncenter size-full wp-image-1467" />](/wp-content/uploads/2012/05/column-oriented-reads.png)
 
 The most common question I hear often when columnar storage is _how is a row stored?_. In other words, if we store all the values of a column together, then how do we re-create a row? Ie. if the column Name has the values &#8216;John Doe&#8217; and &#8216;Joe Public&#8217;, while the Date\_of\_Birth column contains values &#8216;19650112&#8217; and &#8216;19680415&#8217; then when was John born, and when was Joe? The answer is that that the position of the value in the column indicates to which row it belongs. So row 1 consists of the first value in Name column and first value in Date\_of\_Birth, while row 2 is second value in each column and so on.
 
@@ -95,9 +95,9 @@ But batch mode execution requires everybody to play the same tune: all operators
 
 Prior to SQL Server 2012 the columnar storage technology offer from Microsoft was restricted to the BI analytical line of products: Power Pivot and Microsoft SQL Server Analysis Server. Both of these products use xVelocity (formerly known as Vertipac) to create highly compressed in-memory columnar databases. The COLUMNSTORE index of SQL Server 2012 uses the same technology, but adapted to the SQL Server product, specifically to the SQL Server storage and memory model. MOLAP servers store the entire columnar database as a single monolithic file and load it entirely in memory. Such an use pattern would not work along with the complex memory management of the SQL Server buffer pool. Besides, the storage options of SQL Server are capped at the maximum of 2GB size of a BLOB value and that would make for a really small columnar storage database. So COLUMNSTORE indexes instead use the xVelocity technology on smaller shards of the data called _segments_:
 
-[<img src="http://rusanu.com/wp-content/uploads/2012/05/column-segments.png" alt="" title="column-segments" width="466" height="598" class="aligncenter size-full wp-image-1518" />](http://rusanu.com/wp-content/uploads/2012/05/column-segments.png)
+[<img src="/wp-content/uploads/2012/05/column-segments.png" alt="" title="column-segments" width="466" height="598" class="aligncenter size-full wp-image-1518" />](/wp-content/uploads/2012/05/column-segments.png)
 
-A segment represents a group of consecutive rows in the columnstore index. For example segment 1 will have rows from 0 to row number 1 million, segment 2 will have rows from 1000001 to 2000000, segment 3 from 2000001 and so on. Each column will have an entry for each segment in <a href="http://msdn.microsoft.com/en-us/library/gg509105.aspx" target="_blank"><tt>sys.column_store_segments</tt></a>. Note that at the time of writing this the MSDN entry says _&#8220;Contains a row for each column in a columnstore index&#8221;_ which is incorrect, it should say _&#8220;Contains a row for each column **in each segment** in a columnstore index&#8221;_. I have talked before about how columnstore indexes store data in the LOB allocation unit of the table, see <a href="http://rusanu.com/2011/07/13/how-to-use-columnstore-indexes-in-sql-server/" target="_blank">How to use columnstore indexes in SQL Server</a>. Each column segment will be a BLOB value in this allocation unit. In effect you can think about <tt>sys.column_store_segments</tt> as having a VARINARY(MAX) column containing the actual segment data, with the amendment that the storage of this VARBINARY(MAX) column comes from the columnstore index LOB allocation unit and not from the sys.column\_store\_segments own LOB allocation unit. So it should be clear now what is the main limitation in a column segment: it cannot exceed 2GB in size, since this is the maximum size of a VARBINARY(MAX) column value. A column segment is uniformly _encoded_: for example if the column segment uses a dictionary encoding then all values in the segment are encoded using a dictionary encoding representation.
+A segment represents a group of consecutive rows in the columnstore index. For example segment 1 will have rows from 0 to row number 1 million, segment 2 will have rows from 1000001 to 2000000, segment 3 from 2000001 and so on. Each column will have an entry for each segment in <a href="http://msdn.microsoft.com/en-us/library/gg509105.aspx" target="_blank"><tt>sys.column_store_segments</tt></a>. Note that at the time of writing this the MSDN entry says _&#8220;Contains a row for each column in a columnstore index&#8221;_ which is incorrect, it should say _&#8220;Contains a row for each column **in each segment** in a columnstore index&#8221;_. I have talked before about how columnstore indexes store data in the LOB allocation unit of the table, see <a href="/2011/07/13/how-to-use-columnstore-indexes-in-sql-server/" target="_blank">How to use columnstore indexes in SQL Server</a>. Each column segment will be a BLOB value in this allocation unit. In effect you can think about <tt>sys.column_store_segments</tt> as having a VARINARY(MAX) column containing the actual segment data, with the amendment that the storage of this VARBINARY(MAX) column comes from the columnstore index LOB allocation unit and not from the sys.column\_store\_segments own LOB allocation unit. So it should be clear now what is the main limitation in a column segment: it cannot exceed 2GB in size, since this is the maximum size of a VARBINARY(MAX) column value. A column segment is uniformly _encoded_: for example if the column segment uses a dictionary encoding then all values in the segment are encoded using a dictionary encoding representation.
 
 <p class="callout float-left">
   Dictionaries are always used to encode strings and may be used for non-string columns that have few distinct values
@@ -111,7 +111,7 @@ Primary Dictionary
 Secondary Dictionary
 :   This is an overflow dictionary for entries that did not fit in the primary dictionaries. It can be _shared_ by several segments of a column: the relation between dictionaries and column segments is one-to-many.
 
-[<img src="http://rusanu.com/wp-content/uploads/2012/05/Dictionaries.png" alt="" title="Dictionaries" width="600" class="aligncenter size-full wp-image-1532" />](http://rusanu.com/wp-content/uploads/2012/05/Dictionaries.png)
+[<img src="/wp-content/uploads/2012/05/Dictionaries.png" alt="" title="Dictionaries" width="600" class="aligncenter size-full wp-image-1532" />](/wp-content/uploads/2012/05/Dictionaries.png)
 
 The image above illustrates the use of primary and secondary dictionaries. All segments of the column reference the primary dictionary. Segments 1,2 and 3 use the secondary dictionary with ID 1. Segment 4 does not need a secondary dictionary and segment 5 uses the secondary dictionary with ID 2.
 
@@ -153,7 +153,7 @@ If you remember one thing from this article is this: a columnstore index is not 
 
 Comparing with traditional row store indexing strategies, the columnstore indexing rules are straight forward: pick a large table that is usually the fact table in a star schema data warehouse and add a columnstore index that includes every column. Without key order, ASCENDING or DESCENDING clauses, fill factors, filtered indexes, INCLUDE columns or any other of the whistles and bells of row store indexes, the decision is much simpler. Consider the columnstore index as an _alternative_ to the base table.
 
-Of course the biggest columnstore draw back with the SQL Server 2012 release is the inability to update data. Once a columnstore index is added to a table the table becomes read-only. The best way to circumvent the problem is to use the ability to do fast partition switch-in operations, which allow for partitioned columnstore indexes to be updated. See [How to update a table with a columnstore index](http://rusanu.com/2011/07/13/how-to-update-a-table-with-a-columnstore-index/).
+Of course the biggest columnstore draw back with the SQL Server 2012 release is the inability to update data. Once a columnstore index is added to a table the table becomes read-only. The best way to circumvent the problem is to use the ability to do fast partition switch-in operations, which allow for partitioned columnstore indexes to be updated. See [How to update a table with a columnstore index](/2011/07/13/how-to-update-a-table-with-a-columnstore-index/).
 
 # Recommended Reading
 

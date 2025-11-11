@@ -4,7 +4,7 @@ title: 'OT: Terrarium 2 released in the wild'
 date: 2008-07-16T16:24:19+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/2008/07/16/ot-terrarium-2-released-in-the-wild/
+guid: /2008/07/16/ot-terrarium-2-released-in-the-wild/
 permalink: /2008/07/16/ot-terrarium-2-released-in-the-wild/
 categories:
   - Announcements

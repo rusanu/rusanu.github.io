@@ -4,7 +4,7 @@ title: 'Things I know now: blogging can get you into a email ponzi scheme'
 date: 2009-03-20T12:33:22+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/?p=284
+guid: /?p=284
 permalink: /2009/03/20/things-i-know-now-blogging-can-get-you-into-a-email-ponzi-scheme/
 categories:
   - Uncategorized
@@ -29,6 +29,6 @@ Testing requires a different mind set than the development work. Seldom is a goo
 
 Your mind is incredibly powerful at analyzing things that happen at everyday pace. But your intuition is most of the times wrong when it comes to things that happen really fast or on a really large scale. There is no chance for that record to change while you released the lock on it? It **will** change under stress. Your application works perfectly on your dual core laptop? Try it on a 64 way machine and you&#8217;ll see that <a href="http://en.wikipedia.org/wiki/Lock_convoy" target="_blank">lock convoys</a> are not a legend, they **do** happen.
 
-Writing high scale and high performance programs is a league of its own. Most techniques you learn prior to attempting something really big don&#8217;t work. Everything is different: memory allocation, thread management, how you do your I/O. Fortunately there are some excellent articles covering these topics and my favorite ones are the ones from <a href="http://rusanu.com/2008/11/11/high-performance-windows-programs/" target="_blank">Rick Vicik</a>.
+Writing high scale and high performance programs is a league of its own. Most techniques you learn prior to attempting something really big don&#8217;t work. Everything is different: memory allocation, thread management, how you do your I/O. Fortunately there are some excellent articles covering these topics and my favorite ones are the ones from <a href="/2008/11/11/high-performance-windows-programs/" target="_blank">Rick Vicik</a>.
 
 Who&#8217;s am I tagging? I&#8217;m only gonna choose one person, thus in violation of this game rules, but he is a very special person and if I can get him back into the blogosphere, is well worth it: <a href="http://blogs.msdn.com/slavao/" target="_blank">Slava</a>

@@ -4,7 +4,7 @@ title: Certificate Not Yet Valid
 date: 2008-08-25T08:28:32+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/?p=107
+guid: /?p=107
 permalink: /2008/08/25/certificate-not-yet-valid/
 categories:
   - Troubleshooting
@@ -78,7 +78,7 @@ I get back the values <tt>2008-08-25 09:25:16</tt> (my local time) and <tt>2008-
 The <tt>test.cer</tt> file was saved in the same location your <tt>master</tt> files are. Double-click this file and you get to see all the details of the certificate, and we can check the Valid from:
 
 <div class="post-image">
-  <a href="http://rusanu.com/wp-content/uploads/2008/08/certificate.png" target="_blank"><img src="http://rusanu.com/wp-content/uploads/2008/08/certificate.png" alt="Certificate Viewer" title="Click on the image for a full size view" width="250" /></a>
+  <a href="/wp-content/uploads/2008/08/certificate.png" target="_blank"><img src="/wp-content/uploads/2008/08/certificate.png" alt="Certificate Viewer" title="Click on the image for a full size view" width="250" /></a>
 </div>
 
 But you can see that the time displayed is &#8230; <tt>Monday, August 25, 2008 12:25:19 PM</tt>. That is not the 9:25 AM reported by <span style="color:Fuchsia">GETDATE()</span> neither the 6:25 AM reported by <span style="color:Fuchsia">GETUTCDATE()</span>. OK, so my computer local time is 3 hours ahead of UTC and the Certificate Viewer displays the times in local time, that means that the certificate has it&#8217;s UTC time stamp at 9:25. Isn&#8217;t this wrong? It sure is. And in fact that is a SQL Server 2005 bug. When creating a new certificate, it stamps the certificate valid and expiration dates with the local time values instead of the UTC time values. However, when it uses the certificate the time fields are used correctly, so the time value in the field is interpreted as a UTC time value. This is why the certificate I created at 9:25 AM is not valid until 12:25 PM the same day!. And this is because I did the test in Bucharest during summer. If I&#8217;d repeat the same test in Moscow in winter, the certificate would not be valid for 3 hours. In London during summer is not valid one hour. In Mumbai would be 5 hours and 30 minutes. As I said, the result depends on where you&#8217;re doing the test and also whether daylight saving time is in effect or not!

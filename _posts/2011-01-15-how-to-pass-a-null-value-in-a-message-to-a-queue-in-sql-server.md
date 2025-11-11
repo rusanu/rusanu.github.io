@@ -4,7 +4,7 @@ title: How to pass a NULL value in a message to a queue in SQL Server
 date: 2011-01-15T10:08:51+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/?p=1037
+guid: /?p=1037
 permalink: /2011/01/15/how-to-pass-a-null-value-in-a-message-to-a-queue-in-sql-server/
 categories:
   - CodeProject

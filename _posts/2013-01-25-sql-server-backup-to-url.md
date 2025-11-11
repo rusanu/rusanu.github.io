@@ -4,7 +4,7 @@ title: SQL Server backup to URL
 date: 2013-01-25T04:24:15+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/?p=1706
+guid: /?p=1706
 permalink: /2013/01/25/sql-server-backup-to-url/
 categories:
   - Announcements

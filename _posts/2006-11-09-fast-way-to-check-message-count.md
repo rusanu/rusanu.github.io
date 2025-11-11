@@ -4,7 +4,7 @@ title: Fast way to check message count
 date: 2006-11-09T00:17:00+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/2006/11/09/fast-way-to-check-message-count/
+guid: /2006/11/09/fast-way-to-check-message-count/
 permalink: /2006/11/09/fast-way-to-check-message-count/
 categories:
   - Samples

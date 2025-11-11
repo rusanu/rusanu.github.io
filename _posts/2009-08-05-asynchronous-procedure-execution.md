@@ -4,7 +4,7 @@ title: Asynchronous procedure execution
 date: 2009-08-05T01:26:42+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/?p=514
+guid: /?p=514
 permalink: /2009/08/05/asynchronous-procedure-execution/
 categories:
   - CodeProject
@@ -26,7 +26,7 @@ tags:
   Code on GitHub: <a href="https://github.com/rusanu/async_tsql">rusanu/async_tsql</a>
 </p>
 
-**Update:** a version of this sample that accepts parameters is available in the post [Passing Parameters to a Background Procedure](http://rusanu.com/2009/08/18/passing-parameters-to-a-background-procedure/)
+**Update:** a version of this sample that accepts parameters is available in the post [Passing Parameters to a Background Procedure](/2009/08/18/passing-parameters-to-a-background-procedure/)
 
 Recently an user on StackOverflow raised the question <a href="http://stackoverflow.com/questions/1229438/execute-a-stored-procedure-from-a-windows-form-asynchronously-and-then-disconnect" target="_blank">Execute a stored procedure from a windows form asynchronously and then disconnect?</a>. This is a known problem, how to invoke a long running procedure on SQL Server without constraining the client to wait for the procedure execution to terminate. Most times I&#8217;ve seen this question raised in the context of web applications when waiting for a result means delaying the response to the client browser. On Web apps the time constraint is even more drastic, the developer often desires to launch the procedure and immediately return the page even when the execution lasts only few seconds. The application will retrieve the execution result later, usually via an Ajax call driven by the returned page script.
 
@@ -59,7 +59,7 @@ create service [AsyncExecService] on queue [AsyncExecQueue] ([DEFAULT]);
 go
 </code></pre>
 
-Next is the core of our asynchronous execution: the activated procedure. The procedure has to dequeue the message that specifies the user procedure, run the procedure and write the result in the results table. I will also deploy the error handling template I elaborated on my previous article <a href="http://rusanu.com/2009/06/11/exception-handling-and-nested-transactions/" target="_blank">Exception handling and nested transactions</a>:
+Next is the core of our asynchronous execution: the activated procedure. The procedure has to dequeue the message that specifies the user procedure, run the procedure and write the result in the results table. I will also deploy the error handling template I elaborated on my previous article <a href="/2009/06/11/exception-handling-and-nested-transactions/" target="_blank">Exception handling and nested transactions</a>:
 
 <pre><code class="prettyprint lang-sql">
 create procedure usp_AsyncExecActivated
@@ -299,6 +299,6 @@ go
 
 If you check the start time of the second asynchronosuly executed procedure you will notice that it started right after the first one finished. This is because we declare a <tt>max_queue_readers</tt> value of 1 when we set up activation on the queue. This restricts that at most one activated procedure to run at any time, effectively serializing all the asynchronously executed procedures. Whether this is desired or not depends a lot on the actual usage scenario. The limit can be increased as necessary.
 
-If you start playing around with this method of invoking procedures asynchronously you will notice that sometimes the asynchrnously executed procedure is misteriously denied access to other databases or to server scoped objects. When the same procedure is run manually from a query window in SSMS, it executes fine. This is caused by the EXECUTE AS context under which activation occurs. the details are explained in MSDN&#8217;s <a href="http://msdn.microsoft.com/en-us/library/ms188304.aspx" target="_blank">Extending Database Impersonation by Using EXECUTE AS</a> and myself I had covered this subject repeatedly in this blog. The best solution is to simply turn the trustworthy bit on on the database where the activated procedure runs. When this is not desired, or not allowed by your hosting environment, the solution is to code sign the activated procedure: [Signing an activated procedure](http://rusanu.com/2006/03/01/signing-an-activated-procedure/).
+If you start playing around with this method of invoking procedures asynchronously you will notice that sometimes the asynchrnously executed procedure is misteriously denied access to other databases or to server scoped objects. When the same procedure is run manually from a query window in SSMS, it executes fine. This is caused by the EXECUTE AS context under which activation occurs. the details are explained in MSDN&#8217;s <a href="http://msdn.microsoft.com/en-us/library/ms188304.aspx" target="_blank">Extending Database Impersonation by Using EXECUTE AS</a> and myself I had covered this subject repeatedly in this blog. The best solution is to simply turn the trustworthy bit on on the database where the activated procedure runs. When this is not desired, or not allowed by your hosting environment, the solution is to code sign the activated procedure: [Signing an activated procedure](/2006/03/01/signing-an-activated-procedure/).
 
 Using Service Broker Activation to invoke procedures asynchronously may look daunting at beginning. It sure is significantly more complex than just calling BeginExecuteNonQuery. But what needs to be understood is that this is a **reliable** way to invoke the procedure. The client is free to disconnect as soon as it commited the call to <tt>usp_AsyncExecInvoke</tt>. The procedure invoked _will_ run, even if the server is stopped and restarted, even if a mirroring or clustering failover occurs. The server may even crash and be completely rebuilt. As soon as the database is back online, that queue will activate and invoke the asynchronous execution. Such level of reliability is difficult, if not impossible, to guarantee by using a client process.

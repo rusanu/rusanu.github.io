@@ -4,7 +4,7 @@ title: SqlDependency based caching of LINQ Queries
 date: 2010-08-04T13:23:37+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/?p=863
+guid: /?p=863
 permalink: /2010/08/04/sqldependency-based-caching-of-linq-queries/
 categories:
   - Announcements
@@ -20,7 +20,7 @@ tags:
   - sql server
   - SqlDependency
 ---
-Query Notifications is the SQL Server feature that allows a client to subscribe to notifications that are sent when data in the database changes _irrelevant of how that change occurs_. I have talked before about how Query Notifications works in the article [The Mysterious Notification](http://rusanu.com/2006/06/17/the-mysterious-notification/). This feature was designed specifically for client side cache invalidation: the applications runs a query, gets back the result and stores it in the cache. Whenever the result is changed because data was updated, the application will be notified and it can invalidate the cached result.
+Query Notifications is the SQL Server feature that allows a client to subscribe to notifications that are sent when data in the database changes _irrelevant of how that change occurs_. I have talked before about how Query Notifications works in the article [The Mysterious Notification](/2006/06/17/the-mysterious-notification/). This feature was designed specifically for client side cache invalidation: the applications runs a query, gets back the result and stores it in the cache. Whenever the result is changed because data was updated, the application will be notified and it can invalidate the cached result.
 
 Leveraging Query Notifications from the managed clients is very easy due to the dedicated SqlDependency class that takes care of a lot of the details needed to be set up in place in order to be able to receive these notifications. But the MSDN examples and the general community know how with SqlDepenendency is geared toward straight forward usage, by attaching it to a SqlCommand object.
 

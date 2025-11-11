@@ -4,7 +4,7 @@ title: Introducing DBHistory.com
 date: 2016-03-18T07:25:50+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/?p=2466
+guid: /?p=2466
 permalink: /2016/03/18/introducing-dbhistory-com/
 categories:
   - Announcements

@@ -1,6 +1,26 @@
 url: https://rusanu.github.io
 name: rusanu.com
-description: RUSANU CONSULTING LLC
+description: Remus Rusanu blog
 
+# Permalink structure to match original site
+permalink: /:year/:month/:day/:title/
+
+# Plugins
 plugins:
-  - github-pages
+  - jekyll-feed
+  - jekyll-sitemap
+
+# Exclude files from build
+exclude:
+  - Gemfile
+  - Gemfile.lock
+  - temp_homepage.html
+
+# Feed settings
+feed:
+  path: feed.xml
+
+# Site author
+author:
+  name: Remus Rusanu
+  email: remus@rusanu.com

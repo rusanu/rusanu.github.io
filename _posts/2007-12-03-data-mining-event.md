@@ -4,7 +4,7 @@ title: Data Mining Event
 date: 2007-12-03T11:38:50+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/2007/12/03/data-mining-event/
+guid: /2007/12/03/data-mining-event/
 permalink: /2007/12/03/data-mining-event/
 categories:
   - Uncategorized

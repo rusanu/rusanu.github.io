@@ -4,7 +4,7 @@ title: Inspiration is perishable
 date: 2009-07-08T12:33:40+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/?p=449
+guid: /?p=449
 permalink: /2009/07/08/inspiration-is-perishable/
 categories:
   - Uncategorized

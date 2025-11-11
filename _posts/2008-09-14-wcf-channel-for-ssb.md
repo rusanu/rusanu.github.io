@@ -4,7 +4,7 @@ title: WCF Channel for SSB
 date: 2008-09-14T17:38:03+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/?p=122
+guid: /?p=122
 permalink: /2008/09/14/wcf-channel-for-ssb/
 categories:
   - Announcements

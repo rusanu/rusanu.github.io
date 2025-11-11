@@ -4,7 +4,7 @@ title: The Mysterious Notification
 date: 2006-06-17T15:49:55+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/2006/06/17/the-mysterious-notification/
+guid: /2006/06/17/the-mysterious-notification/
 permalink: /2006/06/17/the-mysterious-notification/
 categories:
   - CodeProject
@@ -12,7 +12,7 @@ categories:
 tags:
   - SqlDependency
 ---
-**Update:**: for a way to leverage SqlDependency and Query Notifications from LINQ, see [SqlDependency based caching of LINQ Queries](http://rusanu.com/2010/08/04/sqldependency-based-caching-of-linq-queries/).
+**Update:**: for a way to leverage SqlDependency and Query Notifications from LINQ, see [SqlDependency based caching of LINQ Queries](/2010/08/04/sqldependency-based-caching-of-linq-queries/).
 
 <p class="MsoNormal" style="margin: 0in 0in 0pt">
   One of the most mysterious features shipped with SQL Server 2005 seems to be the various flavors of notifications on data change: <a href="http://msdn2.microsoft.com/en-us/system.data.sql.sqlnotificationrequest.aspx">SqlNotificationRequest</a>, <a href="http://msdn2.microsoft.com/en-us/system.data.sqlclient.sqldependency%28VS.80%29.aspx">SqlDependency</a> and <a href="http://msdn2.microsoft.com/en-us/system.web.caching.sqlcachedependency.aspx">SqlCacheDependency</a>. I see confusion on how this features work, how to use them and how to troubleshoot problems. Why are there three flavors of apparently the same functionality? And how is Service Broker involved into all of these?
@@ -157,5 +157,5 @@ tags:
 </h1>
 
 <p class="MsoNormal" style="margin: 0in 0in 0pt">
-  While the SqlDependency infrastructure is a great help to developers, is it often used w/o properly understanding its functionality and I often see people totally lost when it comes to troubleshooting a problem. In fact, BOL has a dedicated chapter for this topic here: <a href="http://msdn2.microsoft.com/en-us/library/ms177469.aspx">http://msdn2.microsoft.com/en-us/library/ms177469.aspx</a>. The Profiler can show the Query Notification events that are reported when a new subscription is registered. Once a notification subscription is notified, the notification message is delivered using Service Broker and all of my comments related to <a href="http://rusanu.com/2005/12/20/troubleshooting-dialogs/">troubleshooting dialogs</a> apply to this message delivery as well. If the notification message is no delivered, the first place to look is the transmission_status column in the sys.trasnmission_queue view in the sender’s database.
+  While the SqlDependency infrastructure is a great help to developers, is it often used w/o properly understanding its functionality and I often see people totally lost when it comes to troubleshooting a problem. In fact, BOL has a dedicated chapter for this topic here: <a href="http://msdn2.microsoft.com/en-us/library/ms177469.aspx">http://msdn2.microsoft.com/en-us/library/ms177469.aspx</a>. The Profiler can show the Query Notification events that are reported when a new subscription is registered. Once a notification subscription is notified, the notification message is delivered using Service Broker and all of my comments related to <a href="/2005/12/20/troubleshooting-dialogs/">troubleshooting dialogs</a> apply to this message delivery as well. If the notification message is no delivered, the first place to look is the transmission_status column in the sys.trasnmission_queue view in the sender’s database.
 </p>

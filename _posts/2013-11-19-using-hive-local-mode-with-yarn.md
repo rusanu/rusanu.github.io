@@ -4,7 +4,7 @@ title: Using Hive local mode with YARN
 date: 2013-11-19T04:57:26+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/?p=2089
+guid: /?p=2089
 permalink: /2013/11/19/using-hive-local-mode-with-yarn/
 categories:
   - Hive

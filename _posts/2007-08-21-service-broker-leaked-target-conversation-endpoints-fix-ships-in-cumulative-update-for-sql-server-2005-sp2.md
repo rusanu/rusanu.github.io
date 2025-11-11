@@ -4,7 +4,7 @@ title: 'Service Broker &#8216;leaked&#8217; target conversation endpoints fix sh
 date: 2007-08-21T01:05:26+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/2007/08/21/service-broker-leaked-target-conversation-endpoints-fix-ships-in-cumulative-update-for-sql-server-2005-sp2/
+guid: /2007/08/21/service-broker-leaked-target-conversation-endpoints-fix-ships-in-cumulative-update-for-sql-server-2005-sp2/
 permalink: /2007/08/21/service-broker-leaked-target-conversation-endpoints-fix-ships-in-cumulative-update-for-sql-server-2005-sp2/
 categories:
   - Announcements

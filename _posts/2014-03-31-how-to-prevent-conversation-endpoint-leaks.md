@@ -4,7 +4,7 @@ title: How to prevent conversation endpoint leaks
 date: 2014-03-31T03:39:53+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/?p=2343
+guid: /?p=2343
 permalink: /2014/03/31/how-to-prevent-conversation-endpoint-leaks/
 categories:
   - Samples
@@ -175,7 +175,7 @@ lifetime                state_desc                                   security_ti
 
 
 <p>
-  The target conversation endpoint is in CLOSED state, but notice that the <tt>security_timestamp</tt> field is unitialized . The <tt>security_timestamp</tt> exists to prevent dialog replays (either as an malicious attack or as a configuration mistake) which would cause the dialog 'resurrect' if the first message is retried (or 'replayed'). The target conversation endpoint cannot be deleted before the datetime in the security timestamp field, which makes it safe in case of retry/replay. This field is initialized when the message from the initiator contains a special flag set that instructs the target that the initiator has seen the acknowledgement of the first message and had deleted the message 0 from its transmission queue, and thus will not re-send it. When the target receives a message with this flag set, it initializes the security timestamp with current time plus 30 minutes. You may have noticed that the message exchange pattern in my example is the dreaded <a href="http://rusanu.com/2006/04/06/fire-and-forget-good-for-the-military-but-not-for-service-broker-conversations/">fire-and-forget pattern</a>. In this pattern the initiator never has a chance to send a message with the above mentioned flag set and thus the target never has a chance to initiate the conversation security timestamp. This endpoint will be reclaimed on April 18th 2082, because that is the conversation lifetime. In case you wonder that date comes from adding MAX_INT32 (ie. 2147483647) seconds to the current date.
+  The target conversation endpoint is in CLOSED state, but notice that the <tt>security_timestamp</tt> field is unitialized . The <tt>security_timestamp</tt> exists to prevent dialog replays (either as an malicious attack or as a configuration mistake) which would cause the dialog 'resurrect' if the first message is retried (or 'replayed'). The target conversation endpoint cannot be deleted before the datetime in the security timestamp field, which makes it safe in case of retry/replay. This field is initialized when the message from the initiator contains a special flag set that instructs the target that the initiator has seen the acknowledgement of the first message and had deleted the message 0 from its transmission queue, and thus will not re-send it. When the target receives a message with this flag set, it initializes the security timestamp with current time plus 30 minutes. You may have noticed that the message exchange pattern in my example is the dreaded <a href="/2006/04/06/fire-and-forget-good-for-the-military-but-not-for-service-broker-conversations/">fire-and-forget pattern</a>. In this pattern the initiator never has a chance to send a message with the above mentioned flag set and thus the target never has a chance to initiate the conversation security timestamp. This endpoint will be reclaimed on April 18th 2082, because that is the conversation lifetime. In case you wonder that date comes from adding MAX_INT32 (ie. 2147483647) seconds to the current date.
 </p>
 
 
@@ -345,7 +345,7 @@ lifetime                state_desc                                  security_tim
 
 
 <p>
-  Notice how with this message exchange pattern the target endpoint is in <tt>CLOSED</tt> state and <b>security timestamp is initialized</b>. The conversation endpoint will be removed by the system (deleted) when the security timestamp expires. Aside from fixing the endpoint leak problem, this pattern is better because it does have the <a href="http://rusanu.com/2006/04/06/fire-and-forget-good-for-the-military-but-not-for-service-broker-conversations/">>error handling related problems of the fire-and-forget pattern</a>.
+  Notice how with this message exchange pattern the target endpoint is in <tt>CLOSED</tt> state and <b>security timestamp is initialized</b>. The conversation endpoint will be removed by the system (deleted) when the security timestamp expires. Aside from fixing the endpoint leak problem, this pattern is better because it does have the <a href="/2006/04/06/fire-and-forget-good-for-the-military-but-not-for-service-broker-conversations/">>error handling related problems of the fire-and-forget pattern</a>.
 </p>
 
 

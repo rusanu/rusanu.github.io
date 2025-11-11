@@ -4,7 +4,7 @@ title: How to read and interpret the SQL Server log
 date: 2014-03-10T09:42:24+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/?p=1569
+guid: /?p=1569
 permalink: /2014/03/10/how-to-read-and-interpret-the-sql-server-log/
 categories:
   - Samples
@@ -26,7 +26,7 @@ The SQL Server transaction log contains the history of every action that modifie
 
 <a href="http://en.wikipedia.org/wiki/Write-ahead_logging" target="_blank">Write-ahead logging</a> (WAL), also referred to as journaling, is best described in the <a href="http://www.cs.berkeley.edu/~brewer/cs262/Aries.pdf" taget="_blank">ARIES</a> papers but we can get away with a less academic description: SQL Server will first describe in the log any change is about to make, before modifying any data. There is a brief description of this protocol at <a href="http://technet.microsoft.com/en-us/library/cc966500.aspx" target="_blank">SQL Server 2000 I/O Basics</a> and the CSS team has put forward a much referenced presentation at <a href="http://blogs.msdn.com/b/psssql/archive/2010/03/24/how-it-works-bob-dorr-s-sql-server-i-o-presentation.aspx" target="_blank">How It Works: Bob Dorr&#8217;s SQL Server I/O Presentation</a>. What is important for us in the context of this article is that a consequence of the WAL protocol is that **any change that occurred to any data stored in SQL Server must be described somewhere in the log**. Remember now that all your database objects (tables, views, stored procedures, users, permissions etc) are stored as data in the database (yes, metadata is still data) so it follows that any change that occurred to any object in the database is also described somewhere in the log. And when I say _every_ operation I really do mean every operation, including the often misunderstood minimally logged and bulk logged operations, and the so called &#8220;non-logged&#8221; operations, like <tt>TRUNCATE</tt>. In truth there is no such thing as a non-logged operation. For all practical purposes everything is logged and everything leaves a trace in the log that can be discovered.
 
-[<img src="http://rusanu.com/wp-content/uploads/2012/06/interleave.png" alt="" title="interleave" width="600" class="aligncenter size-full wp-image-1579" />](http://rusanu.com/wp-content/uploads/2012/06/interleave.png)
+[<img src="/wp-content/uploads/2012/06/interleave.png" alt="" title="interleave" width="600" class="aligncenter size-full wp-image-1579" />](/wp-content/uploads/2012/06/interleave.png)
 
 <p class="callout float-left">
   The log contains interleaved operations from multiple transactions
@@ -70,9 +70,9 @@ from fn_dblog(null, null)
 where [Operation] = 'LOP_BEGIN_XACT'
 </code></pre>
 
-[<img src="http://rusanu.com/wp-content/uploads/2013/05/lop_begin_xact.png" alt="" title="lop_begin_xact" width="600" class="alignleft size-full wp-image-1753" />](http://rusanu.com/wp-content/uploads/2013/05/lop_begin_xact.png)
+[<img src="/wp-content/uploads/2013/05/lop_begin_xact.png" alt="" title="lop_begin_xact" width="600" class="alignleft size-full wp-image-1753" />](/wp-content/uploads/2013/05/lop_begin_xact.png)
 
-We can recognize some of the transactions in our script. Remember that SQL Server will always operate under a transaction, and if one is not explictly started then SQL Server itself will start one for the the statement being executed. At LSN 20:5d:2 we started transaction 2d0 named CREATE TABLE, so this must be the implicit transaction started for the CREATE TABLE statement. At LSN 20:9b:2 the transaction id 2d6 named INSERT is for our first standalone INSERT statement, and similarly LSNs 20:a0:2 starts transaction 2d9, 20:a1:1 starts 2da, LSN 20:a2:1 starts xact 2db, LSN 20:a3:1 starts xact 2db and LSN 20:a3:1 starts xact 2dc respectively. For those of you that detect a certain pattern in the LSN numbering the explanation is given in my [What is an LSN: Log Sequence Number](http://rusanu.com/2012/01/17/what-is-an-lsn-log-sequence-number/) article. And if hex number are familiar to you then you&#8217;ll also recognize that the transaction ID is basically an incrementing number.
+We can recognize some of the transactions in our script. Remember that SQL Server will always operate under a transaction, and if one is not explictly started then SQL Server itself will start one for the the statement being executed. At LSN 20:5d:2 we started transaction 2d0 named CREATE TABLE, so this must be the implicit transaction started for the CREATE TABLE statement. At LSN 20:9b:2 the transaction id 2d6 named INSERT is for our first standalone INSERT statement, and similarly LSNs 20:a0:2 starts transaction 2d9, 20:a1:1 starts 2da, LSN 20:a2:1 starts xact 2db, LSN 20:a3:1 starts xact 2db and LSN 20:a3:1 starts xact 2dc respectively. For those of you that detect a certain pattern in the LSN numbering the explanation is given in my [What is an LSN: Log Sequence Number](/2012/01/17/what-is-an-lsn-log-sequence-number/) article. And if hex number are familiar to you then you&#8217;ll also recognize that the transaction ID is basically an incrementing number.
 
 The LSN 20:a4:1 that starts xact 2dd is a little bit different because is named <tt>user_transaction</tt>. This is how explicit transactions started with <tt>BEGIN TRANSACTION</tt> show up. There are no more implicit transactions named <tt>INSERT</tt> for the 5 INSERT statements inside the explicit transaction because the INSERT statement did not have to start an implicit transaction: it used the explicit transaction started by the BEGIN TRANSACTION statement. Finally the LSN 20:aa:1 starts the implicit xact 2df for the DELETE statement.
 
@@ -97,7 +97,7 @@ from fn_dblog(null, null)
 where [Transaction ID]='0000:000002d6'
 </code></pre>
 
-[<img src="http://rusanu.com/wp-content/uploads/2013/05/xact_2d6.png" alt="" title="xact_2d6" width="600" class="alignleft size-full wp-image-1759" />](http://rusanu.com/wp-content/uploads/2013/05/xact_2d6.png)
+[<img src="/wp-content/uploads/2013/05/xact_2d6.png" alt="" title="xact_2d6" width="600" class="alignleft size-full wp-image-1759" />](/wp-content/uploads/2013/05/xact_2d6.png)
 
 I choose to look at the xact ID 2d6, which is the first INSERT operation. The result may seem arcane, but there is a lot of useful info if one knows where to look. First the trivial: the xact is 2d6 has 4 operations in the log. Every transaction must have an LOP\_BEGIN\_XACT and a record to close the xact, usually LOP\_COMMIT\_XACT. The other two operation are a recording of locks acquired (<tt>LOP_LOCK_XACT</tt>) and an actual data modification (<tt>LOP_INSERT_ROWS</tt>). the meat and potatoes lay with the data modification operation, but we&#8217;ll see later how LOP\_LOCK\_XACT can also be extremely useful in analysis.
 
@@ -138,11 +138,11 @@ from demotable
 where %%lockres%% = '(8194443284a0)';
 &lt;/pre>
 &lt;p></code><br />
-<a href="http://rusanu.com/wp-content/uploads/2013/05/lockres.png"><img src="http://rusanu.com/wp-content/uploads/2013/05/lockres.png" alt="" title="lockres" width="479" height="157" class="alignleft size-full wp-image-1764" /></a></p>
+<a href="/wp-content/uploads/2013/05/lockres.png"><img src="/wp-content/uploads/2013/05/lockres.png" alt="" title="lockres" width="479" height="157" class="alignleft size-full wp-image-1764" /></a></p>
 
 
 <p>
-  We again located the same row, the first INSERT. Remember that lock resource hashes, by definition, can produce false positives due to <a href="http://rusanu.com/2009/05/29/lockres-collision-probability-magic-marker-16777215/">hash collision</a>. But the probability is low enough and one must simply exercise common sense if a collision is encountered (eg. the SELECT above returns more than one row for the desired lock resource hash).
+  We again located the same row, the first INSERT. Remember that lock resource hashes, by definition, can produce false positives due to <a href="/2009/05/29/lockres-collision-probability-magic-marker-16777215/">hash collision</a>. But the probability is low enough and one must simply exercise common sense if a collision is encountered (eg. the SELECT above returns more than one row for the desired lock resource hash).
 </p>
 
 
@@ -235,7 +235,7 @@ select [Current LSN], [Operation], [Transaction ID],
 
 
 <p>
-  <a href="http://rusanu.com/wp-content/uploads/2013/05/find_junk.png"><img src="http://rusanu.com/wp-content/uploads/2013/05/find_junk.png" alt="" title="find_junk" width="600" class="alignleft size-full wp-image-1768" /></a>
+  <a href="/wp-content/uploads/2013/05/find_junk.png"><img src="/wp-content/uploads/2013/05/find_junk.png" alt="" title="find_junk" width="600" class="alignleft size-full wp-image-1768" /></a>
 </p>
 
 
@@ -271,7 +271,7 @@ select [Current LSN], [Operation], [Transaction ID],
 
 
 <p>
-  <a href="http://rusanu.com/wp-content/uploads/2013/05/find_changed.png"><img src="http://rusanu.com/wp-content/uploads/2013/05/find_changed.png" alt="" title="find_changed" width="600" class="alignleft size-full wp-image-1773" /></a>
+  <a href="/wp-content/uploads/2013/05/find_changed.png"><img src="/wp-content/uploads/2013/05/find_changed.png" alt="" title="find_changed" width="600" class="alignleft size-full wp-image-1773" /></a>
 </p>
 
 
@@ -312,7 +312,7 @@ where charindex(cast('important' as varbinary(20)), [Log Record]) > 0;
 
 
 <p>
-  <a href="http://rusanu.com/wp-content/uploads/2013/05/find_important.png"><img src="http://rusanu.com/wp-content/uploads/2013/05/find_important.png" alt="" title="find_important" width="554" height="121" class="alignleft size-full wp-image-1778" /></a>
+  <a href="/wp-content/uploads/2013/05/find_important.png"><img src="/wp-content/uploads/2013/05/find_important.png" alt="" title="find_important" width="554" height="121" class="alignleft size-full wp-image-1778" /></a>
 </p>
 
 
@@ -334,7 +334,7 @@ select [Current LSN], [Operation], [AllocUnitName], [Transaction Name]
 
 
 <p>
-  <a href="http://rusanu.com/wp-content/uploads/2013/05/important_update.png"><img src="http://rusanu.com/wp-content/uploads/2013/05/important_update.png" alt="" title="important_update" width="563" height="256" class="alignleft size-full wp-image-1779" /></a>
+  <a href="/wp-content/uploads/2013/05/important_update.png"><img src="/wp-content/uploads/2013/05/important_update.png" alt="" title="important_update" width="563" height="256" class="alignleft size-full wp-image-1779" /></a>
 </p>
 
 
@@ -359,7 +359,7 @@ backup log demolog to disk = 'c:\temp\demolog.trn'
 
 
 <p>
-  I just backed up the database log on my little demo database and this triggered log truncation: since the log records are backed up there is no need to keep them in the active database log, so the space in the LDF file can be reused for new log records. See <a href="http://rusanu.com/2012/07/27/how-to-shrink-the-sql-server-log/">How to shrink the SQL Server log</a> for more details on how this works. But if I attempt now any of my queries above they will fail to locate anything in the log. To investigate now I have to look at the log backups:
+  I just backed up the database log on my little demo database and this triggered log truncation: since the log records are backed up there is no need to keep them in the active database log, so the space in the LDF file can be reused for new log records. See <a href="/2012/07/27/how-to-shrink-the-sql-server-log/">How to shrink the SQL Server log</a> for more details on how this works. But if I attempt now any of my queries above they will fail to locate anything in the log. To investigate now I have to look at the log backups:
 </p>
 
 
@@ -405,7 +405,7 @@ select [Current LSN], [Operation], [Transaction ID],
 
 
 <p>
-  <a href="http://rusanu.com/wp-content/uploads/2013/05/tablockx.png"><img src="http://rusanu.com/wp-content/uploads/2013/05/tablockx.png" alt="" title="tablockx" width="600" class="alignleft size-full wp-image-1785" /></a>
+  <a href="/wp-content/uploads/2013/05/tablockx.png"><img src="/wp-content/uploads/2013/05/tablockx.png" alt="" title="tablockx" width="600" class="alignleft size-full wp-image-1785" /></a>
 </p>
 
 
@@ -462,7 +462,7 @@ from fn_dblog(null, null)
 
 
 <p>
-  <a href="http://rusanu.com/wp-content/uploads/2014/03/log_ddl_sch_m.png"><img src="http://rusanu.com/wp-content/uploads/2014/03/log_ddl_sch_m.png" alt="" title="log_ddl_sch_m" width="600" class="alignleft size-full wp-image-2317" /></a>
+  <a href="/wp-content/uploads/2014/03/log_ddl_sch_m.png"><img src="/wp-content/uploads/2014/03/log_ddl_sch_m.png" alt="" title="log_ddl_sch_m" width="600" class="alignleft size-full wp-image-2317" /></a>
 </p>
 
 
@@ -480,7 +480,7 @@ from fn_dblog(null, null)
 
 
 <p>
-  <a href="http://rusanu.com/wp-content/uploads/2014/03/log_ddl_xact_2e6.png"><img src="http://rusanu.com/wp-content/uploads/2014/03/log_ddl_xact_2e6.png" alt="" title="log_ddl_xact_2e6" width="600" class="alignleft size-full wp-image-2321" /></a>
+  <a href="/wp-content/uploads/2014/03/log_ddl_xact_2e6.png"><img src="/wp-content/uploads/2014/03/log_ddl_xact_2e6.png" alt="" title="log_ddl_xact_2e6" width="600" class="alignleft size-full wp-image-2321" /></a>
 </p>
 
 
@@ -548,7 +548,7 @@ from fn_dblog(null, null)
 
 
 <p>
-  As you can see I did not retrieve exactly the DDL that run, but I have a very good idea what happened: the table was created at <tt>2014/03/10 15:00:08:690</tt>, it initially contained two columns and a primary key constraint. Using the same trick of casting the log record content to <tt>NCHAR(4000)</tt> I could easily retrieve the original column names. My example is for a very simple <tt>CREATE TABLE</tt> statement, more complex statements can generate more complex log signatures. Partitioning in special adds a lot of <tt>LOP_INSERT_ROWS</tt> records because every individual partition must be described in <tt>sys.sysrowsets</tt> and every column <i>for every partition</i> and <i>for every index</i> must be described in <tt>sys.sysrscols</tt>. And that is before the low level HoBT metadata is being described, see <a href="http://rusanu.com/2011/10/20/sql-server-table-columns-under-the-hood/">SQL Server table columns under the hood</a>.
+  As you can see I did not retrieve exactly the DDL that run, but I have a very good idea what happened: the table was created at <tt>2014/03/10 15:00:08:690</tt>, it initially contained two columns and a primary key constraint. Using the same trick of casting the log record content to <tt>NCHAR(4000)</tt> I could easily retrieve the original column names. My example is for a very simple <tt>CREATE TABLE</tt> statement, more complex statements can generate more complex log signatures. Partitioning in special adds a lot of <tt>LOP_INSERT_ROWS</tt> records because every individual partition must be described in <tt>sys.sysrowsets</tt> and every column <i>for every partition</i> and <i>for every index</i> must be described in <tt>sys.sysrscols</tt>. And that is before the low level HoBT metadata is being described, see <a href="/2011/10/20/sql-server-table-columns-under-the-hood/">SQL Server table columns under the hood</a>.
 </p>
 
 
@@ -566,7 +566,7 @@ from fn_dblog(null, null)
 
 
 <p>
-  <a href="http://rusanu.com/wp-content/uploads/2014/03/log_ddl_xact_2ea.png"><img src="http://rusanu.com/wp-content/uploads/2014/03/log_ddl_xact_2ea.png" alt="" title="log_ddl_xact_2ea" width="600" class="alignleft size-full wp-image-2323" /></a>
+  <a href="/wp-content/uploads/2014/03/log_ddl_xact_2ea.png"><img src="/wp-content/uploads/2014/03/log_ddl_xact_2ea.png" alt="" title="log_ddl_xact_2ea" width="600" class="alignleft size-full wp-image-2323" /></a>
 </p>
 
 
@@ -596,7 +596,7 @@ from fn_dblog(null, null)
 
 
 <p>
-  <a href="http://rusanu.com/wp-content/uploads/2014/03/log_ddl_delete.png"><img src="http://rusanu.com/wp-content/uploads/2014/03/log_ddl_delete.png" alt="" title="log_ddl_delete" width="600" class="alignleft size-full wp-image-2324" /></a>
+  <a href="/wp-content/uploads/2014/03/log_ddl_delete.png"><img src="/wp-content/uploads/2014/03/log_ddl_delete.png" alt="" title="log_ddl_delete" width="600" class="alignleft size-full wp-image-2324" /></a>
 </p>
 
 
@@ -614,7 +614,7 @@ from fn_dblog(null, null)
 
 
 <p>
-  <a href="http://rusanu.com/wp-content/uploads/2014/03/log_ddl_xact_2ee.png"><img src="http://rusanu.com/wp-content/uploads/2014/03/log_ddl_xact_2ee.png" alt="" title="log_ddl_xact_2ee" width="600" class="alignleft size-full wp-image-2325" /></a>
+  <a href="/wp-content/uploads/2014/03/log_ddl_xact_2ee.png"><img src="/wp-content/uploads/2014/03/log_ddl_xact_2ee.png" alt="" title="log_ddl_xact_2ee" width="600" class="alignleft size-full wp-image-2325" /></a>
 </p>
 
 

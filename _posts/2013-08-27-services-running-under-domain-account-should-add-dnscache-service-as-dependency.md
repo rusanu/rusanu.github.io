@@ -4,14 +4,14 @@ title: Services running under domain account should add dnscache service as depe
 date: 2013-08-27T03:43:04+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/?p=2103
+guid: /?p=2103
 permalink: /2013/08/27/services-running-under-domain-account-should-add-dnscache-service-as-dependency/
 categories:
   - Troubleshooting
 ---
 Recently I had to investigate a deadlocked Windows Server 2012 machine. Any attempt to start or stop a service on this machine would freeze in an infinite wait. I did not know about the &#8220;Analyze Wait Chain&#8221; feature in the Task Manager (new since Windows 7), but turns out is quite a life saver. This feature uses the <a href="http://msdn.microsoft.com/en-us/library/ms681622(VS.85).aspx" target="_blank">Wait Chain Traversal</a> debugging API and is, on the record, <a href="http://blogs.msdn.com/b/matt_pietrek/archive/2009/04/17/analyze-wait-chain-why-is-my-program-stuck.aspx" target="_blank">Matt Pietrek&#8217;s favourite Windows 7 feature</a>. Simply using the Task Manager I was able to see than many programs were waiting on the &#8220;Services and Controller app&#8221; service, which is the SCM (the Service Control Manager):
 
-[<img src="http://rusanu.com/wp-content/uploads/2013/08/wait-chain-scm.png" alt="" title="wait-chain-scm" width="426" height="325" class="alignleft size-full wp-image-2104" />](http://rusanu.com/wp-content/uploads/2013/08/wait-chain-scm.png)  
+[<img src="/wp-content/uploads/2013/08/wait-chain-scm.png" alt="" title="wait-chain-scm" width="426" height="325" class="alignleft size-full wp-image-2104" />](/wp-content/uploads/2013/08/wait-chain-scm.png)  
 <!--more-->
 
 The <tt>services.exe</tt> with PID 588 is the SCM &#8220;Services and Controller app&#8221; service. All but one blocked threads in the SCM were waiting on the thread 1072 and thread 1072 was waiting on the LSA service. I took a dump of the PID 588 process and these blocked threads have this short stack:

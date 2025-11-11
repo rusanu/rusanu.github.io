@@ -4,7 +4,7 @@ title: System pagefile size on machines with large RAM
 date: 2009-11-22T15:33:17+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/?p=594
+guid: /?p=594
 permalink: /2009/11/22/system-pagefile-size-on-machines-with-large-ram/
 categories:
   - Troubleshooting

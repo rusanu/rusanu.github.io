@@ -4,7 +4,7 @@ title: 'Fire and Forget: Good for the military, but not for Service Broker conve
 date: 2006-04-06T10:14:39+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/2006/04/06/fire-and-forget-good-for-the-military-but-not-for-service-broker-conversations/
+guid: /2006/04/06/fire-and-forget-good-for-the-military-but-not-for-service-broker-conversations/
 permalink: /2006/04/06/fire-and-forget-good-for-the-military-but-not-for-service-broker-conversations/
 categories:
   - Troubleshooting

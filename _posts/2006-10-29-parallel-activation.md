@@ -4,7 +4,7 @@ title: Parallel Activation
 date: 2006-10-29T02:17:00+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/2006/10/29/parallel-activation/
+guid: /2006/10/29/parallel-activation/
 permalink: /2006/10/29/parallel-activation/
 categories:
   - Samples

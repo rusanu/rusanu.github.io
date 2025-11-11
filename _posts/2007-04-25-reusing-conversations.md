@@ -4,7 +4,7 @@ title: Reusing Conversations
 date: 2007-04-25T02:49:00+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/2007/04/25/reusing-conversations/
+guid: /2007/04/25/reusing-conversations/
 permalink: /2007/04/25/reusing-conversations/
 categories:
   - CodeProject
@@ -52,7 +52,7 @@ tags:
 </p>
 
 <p style="margin-left: 0.5in; text-indent: -0.25in">
-  <span style="font-size: 10pt; color: black; font-family: Symbol"><span>·<span style="font-family: 'Times New Roman'; font-style: normal; font-variant: normal; font-weight: normal; font-size: 7pt; line-height: normal; font-size-adjust: none; font-stretch: normal"> </span></span></span><span style="font-size: 10pt; color: black; font-family: Verdana">reusing conversations has a significant performance impact (see <a href="http://rusanu.com/2007/04/03/orlando-slides-and-code/"><font color="#800080">http://rusanu.com/2007/04/03/orlando-slides-and-code/</font></a>)<o:p></o:p></span>
+  <span style="font-size: 10pt; color: black; font-family: Symbol"><span>·<span style="font-family: 'Times New Roman'; font-style: normal; font-variant: normal; font-weight: normal; font-size: 7pt; line-height: normal; font-size-adjust: none; font-stretch: normal"> </span></span></span><span style="font-size: 10pt; color: black; font-family: Verdana">reusing conversations has a significant performance impact (see <a href="/2007/04/03/orlando-slides-and-code/"><font color="#800080">/2007/04/03/orlando-slides-and-code/</font></a>)<o:p></o:p></span>
 </p>
 
 <p style="margin-left: 1in; text-indent: -0.25in">
@@ -197,13 +197,13 @@ BEGIN<br />
 
 <ul style="margin-top: 0in" type="disc">
   <li class="MsoNormal" style="margin: 0in 0in 0pt">
-    <span style="font-size: 10pt; font-family: Verdana"><a href="http://rusanu.com/2007/05/03/recycling-conversations/">how long should a conversation be used for?</a><o:p></o:p></span>
+    <span style="font-size: 10pt; font-family: Verdana"><a href="/2007/05/03/recycling-conversations/">how long should a conversation be used for?</a><o:p></o:p></span>
   </li>
   <li class="MsoNormal" style="margin: 0in 0in 0pt">
     <span style="font-size: 10pt; font-family: Verdana">who should end these reused conversations?<o:p></o:p></span>
   </li>
   <li class="MsoNormal" style="margin: 0in 0in 0pt">
-    <span style="font-size: 10pt; font-family: Verdana"><a href="http://rusanu.com/2007/12/03/resending-messages/">how to treat conversation errors?</a><o:p></o:p></span>
+    <span style="font-size: 10pt; font-family: Verdana"><a href="/2007/12/03/resending-messages/">how to treat conversation errors?</a><o:p></o:p></span>
   </li>
 </ul>
 

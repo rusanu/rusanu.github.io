@@ -4,7 +4,7 @@ title: What deprecated features am I using?
 date: 2010-01-12T12:37:20+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/?p=606
+guid: /?p=606
 permalink: /2010/01/12/what-deprecated-features-am-i-using/
 categories:
   - Troubleshooting

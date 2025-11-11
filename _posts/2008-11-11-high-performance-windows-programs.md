@@ -4,7 +4,7 @@ title: High Performance Windows programs
 date: 2008-11-11T10:48:28+00:00
 author: robert
 layout: post
-guid: http://rusanu.com/?p=216
+guid: /?p=216
 permalink: /2008/11/11/high-performance-windows-programs/
 categories:
   - Announcements

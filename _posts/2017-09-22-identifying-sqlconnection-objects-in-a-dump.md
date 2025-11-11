@@ -4,7 +4,7 @@ title: Identifying SqlConnection objects in a dump
 date: 2017-09-22T23:49:51+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/?p=2505
+guid: /?p=2505
 permalink: /2017/09/22/identifying-sqlconnection-objects-in-a-dump/
 categories:
   - Troubleshooting

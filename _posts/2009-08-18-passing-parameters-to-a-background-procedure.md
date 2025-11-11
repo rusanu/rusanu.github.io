@@ -4,7 +4,7 @@ title: Passing Parameters to a Background Procedure
 date: 2009-08-18T11:21:47+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/?p=532
+guid: /?p=532
 permalink: /2009/08/18/passing-parameters-to-a-background-procedure/
 categories:
   - Samples
@@ -22,7 +22,7 @@ tags:
   Code on GitHub: <a href="https://github.com/rusanu/async_tsql">rusanu/async_tsql</a>
 </p>
 
-I have posted previously an example [how to invoke a procedure asynchronously](http://rusanu.com/2009/08/05/asynchronous-procedure-execution) using service Broker activation. Several readers have inquired how to extend this mechanism to add parameters to the background launched procedure.
+I have posted previously an example [how to invoke a procedure asynchronously](/2009/08/05/asynchronous-procedure-execution) using service Broker activation. Several readers have inquired how to extend this mechanism to add parameters to the background launched procedure.
 
 Passing parameters to a single well know procedure is easy: the parameters are be added to the message body and the activated procedure looks them up in the received XML, passing them to the called procedure. But is significantly more complex to create a generic mechanism that can pass parameters to any procedure. The problem is the type system, because the parameters have unknown types and the activated procedure has to pass proper typed parameters to the invoked procedure.
 

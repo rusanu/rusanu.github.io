@@ -4,7 +4,7 @@ title: Prevent ERRORLOG growth
 date: 2007-11-11T01:21:36+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/2007/11/11/prevent-errorlog-growth/
+guid: /2007/11/11/prevent-errorlog-growth/
 permalink: /2007/11/11/prevent-errorlog-growth/
 categories:
   - Troubleshooting

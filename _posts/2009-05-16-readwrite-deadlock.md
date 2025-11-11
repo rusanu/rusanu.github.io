@@ -4,7 +4,7 @@ title: Read/Write deadlock
 date: 2009-05-16T03:13:03+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/?p=361
+guid: /?p=361
 permalink: /2009/05/16/readwrite-deadlock/
 categories:
   - CodeProject
@@ -84,7 +84,7 @@ Now switch back to the first query window and there you have it:
 
 Looking at the deadlock graph will show exactly the situation I described:
 
-[<img src="http://rusanu.com/wp-content/uploads/2009/05/testdeadlock.png" alt="" title="testdeadlock" width="300" height="61" class="alignnone size-medium wp-image-362" />](http://rusanu.com/wp-content/uploads/2009/05/testdeadlock.png)
+[<img src="/wp-content/uploads/2009/05/testdeadlock.png" alt="" title="testdeadlock" width="300" height="61" class="alignnone size-medium wp-image-362" />](/wp-content/uploads/2009/05/testdeadlock.png)
 
 SPID 52 has an KEY S lock on idxTestDeadlockColA and wants an KEY S lock on cdxTestDeadlockTestId, SPID 53 has the KEY X lock on cdxTestDeadlockTestId and wants a KEY X lock on dxTestDeadlockColA. SPID 52 is chosen as victim since it performed less writes than SPID 53.
 

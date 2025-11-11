@@ -4,7 +4,7 @@ title: '%%lockres%% collision probability magic marker: 16,777,215'
 date: 2009-05-29T00:41:08+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/?p=410
+guid: /?p=410
 permalink: /2009/05/29/lockres-collision-probability-magic-marker-16777215/
 categories:
   - Troubleshooting

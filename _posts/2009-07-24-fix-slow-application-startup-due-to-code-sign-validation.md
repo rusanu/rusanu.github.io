@@ -4,7 +4,7 @@ title: Fix slow application startup due to code sign validation
 date: 2009-07-24T11:18:50+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/?p=483
+guid: /?p=483
 permalink: /2009/07/24/fix-slow-application-startup-due-to-code-sign-validation/
 categories:
   - Troubleshooting

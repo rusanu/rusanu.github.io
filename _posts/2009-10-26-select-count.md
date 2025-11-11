@@ -4,7 +4,7 @@ title: 'select count(*);'
 date: 2009-10-26T12:49:59+00:00
 author: remus
 layout: post
-guid: http://rusanu.com/?p=572
+guid: /?p=572
 permalink: /2009/10/26/select-count/
 categories:
   - Samples
